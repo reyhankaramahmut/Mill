@@ -36,4 +36,18 @@ case class Board(fields: List[Field]) {
         if !(row > 0 && row < size - 1 && col > 0 && col < size - 1)
       } yield Field(col, row, ring, "")).toList
   )
+  override def toString(): String = {
+    def bar(width: Int = barWidth) = "―" * width
+    def line(height: Int = lineHeight) = "│" * height
+    // vertical board size/dimension
+    val largestRow = fields.maxBy(_.y).y
+    val upperSection = fields.filter(field => field.y == 0)
+    val middleSection =
+      fields.filter(field => field.y > 0 && field.y < largestRow)
+    val lowerSection = fields.filter(field => field.y == largestRow)
+    return ""
+  }
+  def fieldsDump = fields
+    .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
+    .mkString(",")
 }
