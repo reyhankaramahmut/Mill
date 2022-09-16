@@ -39,7 +39,6 @@ case class Board(fields: List[Field]) {
       } yield Field(col, row, ring, "⚫")).toList
   )
   override def toString(): String = {
-
     // vertical board size/dimension
     val largestRow = fields.maxBy(_.y).y
     def bar(width: Int = barWidth) = "―" * width
@@ -53,9 +52,34 @@ case class Board(fields: List[Field]) {
         .mkString(bar(((largestRow - fieldsByRing(0)) + 1) * barWidth))
     +(space() + line()) * fieldsByRing(0)
     val middleSection =
-      fields.filter(field => field.y > 0 && field.y < largestRow)
-    val lowerSection = fields.filter(field => field.y == largestRow)
-    return ""
+      fields
+        .filter(field => field.y > 0 && field.y < largestRow)
+    val middleSections = middleSection.splitAt(middleSection.length / 2)
+
+    val upperSection = fields
+      .filter(field => field.y == 0)
+      .groupBy(_.ring)
+      .map(formattedFieldsByRing)
+      .mkString(endOfLine)
+    +endOfLine
+    val lowerSection = ListMap(
+      fields
+        .filter(field => field.y == largestRow)
+        .groupBy(_.ring)
+        .toSeq
+        .sortWith(_._1 > _._1): _*
+    )
+      .map(formattedFieldsByEing)
+      .mkString(endOfLine)
+
+    endOfLine
+    +upperSection
+    +dividerRow
+    +middleSection(0).mkString(
+      bar(barWidth / 2)
+    ) + endOfLine
+    +dividerRow
+    +lowerSection
   }
   def fieldsDump = fields
     .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
