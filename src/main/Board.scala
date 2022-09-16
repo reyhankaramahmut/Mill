@@ -1,4 +1,5 @@
 import java.lang.IllegalArgumentException
+import scala.collection.immutable.ListMap
 
 /*
       a             b             c
@@ -18,6 +19,7 @@ case class Board(fields: List[Field]) {
   val endOfLine = sys.props("line.separator")
   val lineHeight = 1
   val barWidth = 4
+  val spaceWidth = 3
   @throws(classOf[IllegalArgumentException])
   // auxiliary constructor that creates the initial board with its fields respectively
   def this(size: Int) = this(
@@ -34,14 +36,22 @@ case class Board(fields: List[Field]) {
         col <- 0 until size;
         // filter out inner fields
         if !(row > 0 && row < size - 1 && col > 0 && col < size - 1)
-      } yield Field(col, row, ring, "")).toList
+      } yield Field(col, row, ring, "⚫")).toList
   )
   override def toString(): String = {
-    def bar(width: Int = barWidth) = "―" * width
-    def line(height: Int = lineHeight) = "│" * height
+
     // vertical board size/dimension
     val largestRow = fields.maxBy(_.y).y
-    val upperSection = fields.filter(field => field.y == 0)
+    def bar(width: Int = barWidth) = "―" * width
+    def line(height: Int = lineHeight) = "│" * height
+    def space(width: Int = spaceWidth) = " " * width
+    def dividerRow =
+      (line() + space()) * (largestRow + 1) + space() * largestRow + (space() + line()) * (largestRow + 1)
+    +endOfLine
+    def formattedFieldsByRing = (fieldsByRing: (Int, List[Field])) =>
+      (line() + space()) * fieldsByRing(0) + fieldsByRing(1)
+        .mkString(bar(((largestRow - fieldsByRing(0)) + 1) * barWidth))
+    +(space() + line()) * fieldsByRing(0)
     val middleSection =
       fields.filter(field => field.y > 0 && field.y < largestRow)
     val lowerSection = fields.filter(field => field.y == largestRow)
