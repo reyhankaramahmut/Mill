@@ -1,3 +1,5 @@
+package de.htwg.se.mill.model
+
 final val UnsetFieldColor = "⚫"
 
 case class Field(x: Int, y: Int, ring: Int, color: String = UnsetFieldColor) {

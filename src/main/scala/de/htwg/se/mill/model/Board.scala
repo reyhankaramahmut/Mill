@@ -1,5 +1,6 @@
 import java.lang.IllegalArgumentException
 import scala.collection.immutable.ListMap
+package de.htwg.se.mill.model
 
 case class Board(fields: List[Field], size: Int) {
   val endOfLine = sys.props("line.separator")
