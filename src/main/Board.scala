@@ -8,9 +8,9 @@ case class Board(fields: List[Field], size: Int) {
   val spaceWidth = 3
   @throws(classOf[IllegalArgumentException])
   // auxiliary constructor that creates the initial board with its fields respectively
-  def this(size: Int) = this(
+  def this(size: Int = 3) = this(
     // check if board size is valid
-    if (size < 3 || size % 2 == 0)
+    if (size < 3 || size % 2 == 0 || size > 9)
       throw new IllegalArgumentException(
         "Invalid board size. Should be uneven and greater than 2."
       )
