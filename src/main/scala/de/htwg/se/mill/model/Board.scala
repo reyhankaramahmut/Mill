@@ -1,17 +1,31 @@
+package de.htwg.se.mill.model
+import de.htwg.se.mill.model.Field
 import java.lang.IllegalArgumentException
 import scala.collection.immutable.ListMap
-package de.htwg.se.mill.model
 
-case class Board(fields: List[Field], size: Int) {
+/*
+      a             b             c
+    1 ⚫――――――――――――⚫――――――――――――⚫
+      │   ⚫――――――――⚫――――――――⚫   │ 1
+      │   │   ⚫――――⚫――――⚫   │ 2   │
+      │   │   │            │ 3  │   │
+    2 ⚫――⚫――⚫          ⚫――⚫――⚫
+      │   │   │            │   │   │
+      │   │   ⚫――――⚫――――⚫   │   │
+      │   ⚫――――――――⚫――――――――⚫   │
+    3 ⚫――――――――――――⚫――――――――――――⚫
+ */
+// chess input notation: a11 a21, a11, a11 c33
+case class Board(fields: List[Field]) {
   val endOfLine = sys.props("line.separator")
   val lineHeight = 1
   val barWidth = 4
   val spaceWidth = 3
   @throws(classOf[IllegalArgumentException])
   // auxiliary constructor that creates the initial board with its fields respectively
-  def this(size: Int = 3) = this(
+  def this(size: Int) = this(
     // check if board size is valid
-    if (size < 3 || size % 2 == 0 || size > 9)
+    if (size < 3 || size % 2 == 0)
       throw new IllegalArgumentException(
         "Invalid board size. Should be uneven and greater than 2."
       )
@@ -23,23 +37,26 @@ case class Board(fields: List[Field], size: Int) {
         col <- 0 until size;
         // filter out inner fields
         if !(row > 0 && row < size - 1 && col > 0 && col < size - 1)
-      } yield Field(col, row, ring)).toList,
-    size
+      } yield Field(col, row, ring, "⚫")).toList
   )
+
   override def toString(): String = {
+    // vertical board size/dimension
+    val largestRow = fields.maxBy(_.y).y
+
     def bar(width: Int = barWidth) = "―" * width
     def line(height: Int = lineHeight) = "│" * height
     def space(width: Int = spaceWidth) = " " * width
     def dividerRow =
-      (line() + space()) * size + space() * (size - 1) + (space() + line()) * size
-    +endOfLine
+      (line() + space()) * (largestRow + 1) + space() * largestRow + (space() + line()) * (largestRow + 1)
+        + endOfLine
     def formattedFieldsByRing = (fieldsByRing: (Int, List[Field])) =>
       (line() + space()) * fieldsByRing(0) + fieldsByRing(1)
-        .mkString(bar((((size - 1) - fieldsByRing(0)) + 1) * barWidth))
-    +(space() + line()) * fieldsByRing(0)
+        .mkString(bar(((largestRow - fieldsByRing(0)) + 1) * barWidth))
+        + (space() + line()) * fieldsByRing(0)
     val middleSection =
       fields
-        .filter(field => field.y > 0 && field.y < size - 1)
+        .filter(field => field.y > 0 && field.y < largestRow)
     val middleSections = middleSection.splitAt(middleSection.length / 2)
 
     val upperSection = fields
@@ -47,27 +64,27 @@ case class Board(fields: List[Field], size: Int) {
       .groupBy(_.ring)
       .map(formattedFieldsByRing)
       .mkString(endOfLine)
-    +endOfLine
+      + endOfLine
     val lowerSection = ListMap(
       fields
-        .filter(field => field.y == size - 1)
+        .filter(field => field.y == largestRow)
         .groupBy(_.ring)
         .toSeq
         .sortWith(_._1 > _._1): _*
     )
-      .map(formattedFieldsByEing)
+      .map(formattedFieldsByRing)
       .mkString(endOfLine)
 
     endOfLine
-    +upperSection
-    +dividerRow
-    +middleSection(0).mkString(
-      bar(barWidth / 2)
-    ) + space() * size + middleSections(1).mkString(
-      bar(barWidth / 2)
-    ) + endOfLine
-    +dividerRow
-    +lowerSection
+      + upperSection
+      + dividerRow
+      + middleSections(0).mkString(
+        bar(barWidth / 2)
+      ) + space() * (largestRow + 1) + middleSections(1).mkString(
+        bar(barWidth / 2)
+      ) + endOfLine
+      + dividerRow
+      + lowerSection
   }
   def fieldsDump = fields
     .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
