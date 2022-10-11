@@ -1,5 +1,5 @@
 package de.htwg.se.mill.model
 
-case class Player(name: String, colorToken: String) {
-  override def toString: String = s"$name $colorToken"
+case class Player(name: String, color: String) {
+  override def toString: String = s"$name $color"
 }
