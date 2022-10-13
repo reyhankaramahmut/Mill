@@ -7,32 +7,47 @@ import de.htwg.se.mill.model.GameState
 
 final class TUI {
   @throws(classOf[IllegalArgumentException])
-  def processInput(player: Player, input: String, game: Game): Game = {
+  def processInput(
+      player: Player,
+      input: String,
+      game: Game
+  ): Game = {
     input match {
       case "q" => game
       case "n" => Game(new Board, game.players)
-      // chess input notation: (columnrowring)111 121, 111, 111 133
+      // input notation: (columnrowring) 111 121, 111, 111 133
       case _ => {
-        if (!input.matches("[1-9][1-9][1-9]( [1-9][1-9][1-9])?")) {
+        val commandPattern = s"[1-${game.board.size}]{3}"
+        if (!input.matches(s"$commandPattern( $commandPattern)?")) {
           throw new IllegalArgumentException(
             "Your command is wrong. Please check it again. Should be something like 111 121 or 111."
           )
         }
         val fields = input.split(" ").map(field => field.split(""))
-        val field =
-          Field(
-            fields(0)(0).toInt - 1,
-            fields(0)(1).toInt - 1,
-            fields(0)(2).toInt - 1
+        val field = game.board.fields
+          .find(f =>
+            f.equals(
+              Field(
+                fields(0)(0).toInt - 1,
+                fields(0)(1).toInt - 1,
+                fields(0)(2).toInt - 1
+              )
+            )
           )
+          .get
         // moving, flying
         if (fields.length > 1) {
-          val to =
-            Field(
-              fields(1)(0).toInt - 1,
-              fields(1)(1).toInt - 1,
-              fields(1)(2).toInt - 1
+          val to = game.board.fields
+            .find(f =>
+              f.equals(
+                Field(
+                  fields(1)(0).toInt - 1,
+                  fields(1)(1).toInt - 1,
+                  fields(1)(2).toInt - 1
+                )
+              )
             )
+            .get
           game.movePiece(player, field, to)
         }
         // setting, removing
