@@ -5,16 +5,16 @@ import de.htwg.se.mill.model.Player
 import de.htwg.se.mill.model.Field
 
 /*
-  a             b             c
-1 ⚫――――――――――――⚫――――――――――――⚫
-  │   ⚫――――――――⚫――――――――⚫   │ 1
-  │   │   ⚫――――⚫――――⚫   │ 2   │
-  │   │   │            │ 3  │   │
-2 ⚫――⚫――⚫          ⚫――⚫――⚫
-  │   │   │            │   │   │
-  │   │   ⚫――――⚫――――⚫   │   │
-  │   ⚫――――――――⚫――――――――⚫   │
-3 ⚫――――――――――――⚫――――――――――――⚫
+      1             2             3
+    1 ⚫――――――――――――⚫――――――――――――⚫
+      │   ⚫――――――――⚫――――――――⚫   │ 1
+      │   │   ⚫――――⚫――――⚫   │ 2   │
+      │   │   │            │ 3  │   │
+    2 ⚫――⚫――⚫          ⚫――⚫――⚫
+      │   │   │            │   │   │
+      │   │   ⚫――――⚫――――⚫   │   │
+      │   ⚫――――――――⚫――――――――⚫   │
+    3 ⚫――――――――――――⚫――――――――――――⚫
  */
 enum GameState(value: String) {
   def representation = value
@@ -42,7 +42,6 @@ final case class Game(
     ^ Math.abs(from.ring - to.ring) == 1
 
   def isMill(to: Field, board: Board): Boolean = {
-    // TODO: check
     val possibleMillOnRow = board.fields
       .count(field =>
         field.y == to.y && field.ring == to.ring && field.color == to.color
@@ -62,7 +61,10 @@ final case class Game(
     }
     possibleMillOnColumn || possibleMillOnRow
   }
-
+  def everyPlayerHasSetItsStones(players: Vector[Player]): Boolean = players
+    .count(player =>
+      player.setStones == Math.pow(board.size, 2)
+    ) == players.length
   @throws(classOf[IllegalArgumentException])
   def setPiece(player: Player, field: Field): Game = {
     if (state != GameState.Setting) {
@@ -74,23 +76,23 @@ final case class Game(
       throw new IllegalArgumentException(
         "The piece was not set. Please use a valid field that is not already in use."
       )
+    val newField = new Field(field, player.color)
     val playedTurnBoard = Board(
       board.fields.updated(
         board.fields.indexOf(field),
-        new Field(field, player.color)
+        newField
       ),
       board.size
     )
+    val playedTurnPlayers = players.updated(
+      players.indexOf(player),
+      Player(player.name, player.color, player.setStones + 1)
+    )
     val playedTurnState =
-      if (isMill(field, board)) GameState.Removing
-      else if (
-        playedTurnBoard.fields
-          .count(field => field.color != UnsetFieldColor) < Math
-          .pow(playedTurnBoard.size, 2)
-          .toInt * 2
-      ) state
-      else GameState.Moving
-    Game(playedTurnBoard, players, playedTurnState)
+      if (isMill(newField, playedTurnBoard)) GameState.Removing
+      else if (everyPlayerHasSetItsStones(playedTurnPlayers)) GameState.Moving
+      else state
+    Game(playedTurnBoard, playedTurnPlayers, playedTurnState)
   }
   @throws(classOf[IllegalArgumentException])
   def movePiece(player: Player, from: Field, to: Field): Game = {
@@ -115,6 +117,7 @@ final case class Game(
           "The piece was not moved. Please use a valid field that is not already in use."
         )
     }
+    val newField = new Field(to, player.color)
     val playedTurnBoard = Board(
       board.fields
         .updated(
@@ -123,14 +126,14 @@ final case class Game(
         )
         .updated(
           board.fields.indexOf(to),
-          new Field(to, player.color)
+          newField
         ),
       board.size
     )
     val playedTurnState =
-      if (isMill(to, board)) GameState.Removing
+      if (isMill(newField, playedTurnBoard)) GameState.Removing
       else state
-    Game(board, players, state)
+    Game(playedTurnBoard, players, playedTurnState)
   }
   @throws(classOf[IllegalArgumentException])
   def removePiece(player: Player, field: Field): Game = {
@@ -144,6 +147,16 @@ final case class Game(
         "The piece was not removed. You cannot remove your own pieces."
       )
     }
+    if (field.color == UnsetFieldColor) {
+      throw new IllegalArgumentException(
+        "The piece was not removed. You cannot remove unset fields."
+      )
+    }
+    if (isMill(field, board)) {
+      throw new IllegalArgumentException(
+        "The piece was not removed. You cannot remove pieces on a mill."
+      )
+    }
     val playedTurnBoard = Board(
       board.fields
         .updated(
@@ -152,15 +165,18 @@ final case class Game(
         ),
       board.size
     )
-    var playedTurnState = GameState.Moving
+    var playedTurnState = GameState.Setting
     val otherPlayersPieces = playedTurnBoard.fields.count(field =>
       field.color == players.find(p => !p.equals(player)).get.color
     )
-    if (otherPlayersPieces < 3) {
-      playedTurnState = GameState.Won
-    } else if (otherPlayersPieces == 3) {
-      playedTurnState = GameState.Flying
+    if (everyPlayerHasSetItsStones(players)) {
+      playedTurnState = GameState.Moving
+      if (otherPlayersPieces < board.size) {
+        playedTurnState = GameState.Won
+      } else if (otherPlayersPieces == board.size) {
+        playedTurnState = GameState.Flying
+      }
     }
-    Game(board, players, state)
+    Game(playedTurnBoard, players, playedTurnState)
   }
 }
