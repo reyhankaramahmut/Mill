@@ -9,9 +9,9 @@ import de.htwg.se.mill.model.GameState
 @main def main: Unit = {
   println("""
     Welcome to Muehle a strategy board game.
-    To set or remove a piece please use a command like 112
-    where a stands for the first column, 1 stands for the first row
-    and 2 stands for the second ring.
+    To set or remove a piece please use a command like 123
+    where 1 stands for the first column, 2 stands for the second row
+    and 3 stands for the third ring.
     To move a piece please use a command like 111 112 where the first
     part of the command 111 indicates the piece field before moving
     and the part of the command 112 indicates the piece field after moving.
@@ -36,6 +36,7 @@ import de.htwg.se.mill.model.GameState
     }
     if (game.state == GameState.Won) {
       println(s"Congratulations! $currentPlayer has won the game!")
+      game = Game(new Board, Vector(player1, player2))
     }
   }
 }
