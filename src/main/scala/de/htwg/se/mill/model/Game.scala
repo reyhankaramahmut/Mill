@@ -5,25 +5,18 @@ import de.htwg.se.mill.model.Player
 import de.htwg.se.mill.model.Field
 
 /*
-      1             2             3
-    1 ⚫――――――――――――⚫――――――――――――⚫
-      │   ⚫――――――――⚫――――――――⚫   │ 1
-      │   │   ⚫――――⚫――――⚫   │ 2   │
-      │   │   │            │ 3  │   │
-    2 ⚫――⚫――⚫          ⚫――⚫――⚫
-      │   │   │            │   │   │
-      │   │   ⚫――――⚫――――⚫   │   │
-      │   ⚫――――――――⚫――――――――⚫   │
-    3 ⚫――――――――――――⚫――――――――――――⚫
+  1             2             3
+1 ⚫――――――――――――⚫――――――――――――⚫
+  │   ⚫――――――――⚫――――――――⚫   │ 1
+  │   │   ⚫――――⚫――――⚫   │ 2   │
+  │   │   │            │ 3  │   │
+2 ⚫――⚫――⚫          ⚫――⚫――⚫
+  │   │   │            │   │   │
+  │   │   ⚫――――⚫――――⚫   │   │
+  │   ⚫――――――――⚫――――――――⚫   │
+3 ⚫――――――――――――⚫――――――――――――⚫
  */
-enum GameState(value: String) {
-  def representation = value
-  case Setting extends GameState("Setting pieces")
-  case Moving extends GameState("Moving pieces")
-  case Removing extends GameState("Removing piece")
-  case Flying extends GameState("Flying pieces")
-  case Won extends GameState("Won")
-}
+
 final case class Game(
     board: Board,
     players: Vector[Player],
@@ -35,7 +28,7 @@ final case class Game(
       && board.fields
         .find(f => f.equals(field))
         .get
-        .color == UnsetFieldColor
+        .color == field.unsetFieldColor
 
   def isValidMove(from: Field, to: Field): Boolean = isValidSet(to) &&
     Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
@@ -128,7 +121,7 @@ final case class Game(
       board.fields
         .updated(
           board.fields.indexOf(from),
-          new Field(from, UnsetFieldColor)
+          new Field(from, newField.unsetFieldColor)
         )
         .updated(
           board.fields.indexOf(to),
@@ -153,7 +146,7 @@ final case class Game(
         "The piece was not removed. You cannot remove your own pieces."
       )
     }
-    if (field.color == UnsetFieldColor) {
+    if (field.color == field.unsetFieldColor) {
       throw new IllegalArgumentException(
         "The piece was not removed. You cannot remove unset fields."
       )
@@ -167,7 +160,7 @@ final case class Game(
       board.fields
         .updated(
           board.fields.indexOf(field),
-          new Field(field, UnsetFieldColor)
+          new Field(field, field.unsetFieldColor)
         ),
       board.size
     )
