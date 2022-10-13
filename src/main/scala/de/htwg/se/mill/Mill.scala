@@ -31,12 +31,14 @@ import de.htwg.se.mill.model.GameState
       s"${game.board}\n${currentPlayer}'s turn(${game.state.representation}): "
     )
     game = tui.processInput(currentPlayer, input, game)
+    if (game.state == GameState.Won) {
+      println(
+        s"Congratulations! $currentPlayer has won the game!\nStarting new game."
+      )
+      game = Game(new Board, Vector(player1, player2))
+    }
     if (game.state != GameState.Removing) {
       currentPlayer = if currentPlayer == player1 then player2 else player1
-    }
-    if (game.state == GameState.Won) {
-      println(s"Congratulations! $currentPlayer has won the game!")
-      game = Game(new Board, Vector(player1, player2))
     }
   }
 }
