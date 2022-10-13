@@ -2,7 +2,7 @@ import de.htwg.se.mill.model.Player
 import de.htwg.se.mill.model.Board
 import scala.collection.immutable.ListMap
 
-val nineMensMorris = new Board(3)
+val nineMensMorris = Board.withSize().get
 val largestRow = nineMensMorris.fields.maxBy(_.y).y
 val upperSection = nineMensMorris.fields
   .filter(field => field.y == 0)
@@ -25,5 +25,5 @@ val upperSectionFormatted = upperSection
 nineMensMorris.fieldsDump
 val Melanie = Player("Melanie", "🔴")
 val Reyhan = Player("Reyhan", "🔵")
-val bigBoard = new Board(5)
+val bigBoard = Board.withSize(5).get
 bigBoard.fieldsDump
