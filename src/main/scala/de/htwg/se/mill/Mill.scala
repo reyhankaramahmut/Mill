@@ -23,7 +23,7 @@ import de.htwg.se.mill.model.GameState
   val player2 = Player(readLine(), "🔵")
   val tui = new TUI
 
-  var game = Game(new Board, Vector(player1, player2))
+  var game = Game(Board.withSize().get, Vector(player1, player2))
   var input = ""
   var currentPlayer = player1
   while (input != "q") {
@@ -35,7 +35,7 @@ import de.htwg.se.mill.model.GameState
       println(
         s"Congratulations! $currentPlayer has won the game!\nStarting new game."
       )
-      game = Game(new Board, Vector(player1, player2))
+      game = Game(Board.withSize(game.board.size).get, Vector(player1, player2))
     }
     if (game.state != GameState.Removing) {
       currentPlayer = if currentPlayer == player1 then player2 else player1

@@ -14,7 +14,7 @@ final class TUI {
   ): Game = {
     input match {
       case "q" => game
-      case "n" => Game(new Board, game.players)
+      case "n" => Game(Board.withSize(game.board.size).get, game.players)
       // input notation: (columnrowring) 111 121, 111, 111 133
       case _ => {
         val commandPattern = s"[1-${game.board.size}]{3}"
