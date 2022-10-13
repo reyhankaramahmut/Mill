@@ -17,6 +17,22 @@ class PlayerSpec extends AnyWordSpec with Matchers {
       "have a nice String representation" in {
         player.toString should be("Melanie 🔴")
       }
+      "equal a player with the same color and name" in {
+        val samePlayer = Player("Melanie", "🔴")
+        player should equal(samePlayer)
+      }
+      "not equal a player with a different color" in {
+        val differentPlayer = Player("Melanie", "🔵")
+        player should not equal (differentPlayer)
+      }
+      "not equal a player with a different name" in {
+        val differentPlayer = Player("Alex", "🔴")
+        player should not equal (differentPlayer)
+      }
+      "not equal a player with a different type" in {
+        val differentPlayer = ""
+        player should not equal (differentPlayer)
+      }
     }
   }
 }
