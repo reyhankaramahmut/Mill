@@ -20,6 +20,13 @@ case class Game(
     players: Vector[Player],
     state: GameState = GameState.Setting
 ) {
+  override def equals(game: Any): Boolean = game match {
+    case g: Game =>
+      g.board.equals(board) && g.players.equals(players) && g.state.equals(
+        state
+      )
+    case _ => false
+  }
   def isValidSet(field: Field): Boolean =
     field.x < board.size && field.x >= 0 && field.y < board.size
       && field.y >= 0 && field.ring < board.size && field.ring >= 0
@@ -32,23 +39,25 @@ case class Game(
     (Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
       ^ Math.abs(from.ring - to.ring) == 1)
 
-  def isMill(to: Field, board: Board): Boolean = {
-    val possibleMillOnRow = board.fields
+  def isMill(to: Field, boardAfterTurn: Board): Boolean = {
+    val possibleMillOnRow = boardAfterTurn.fields
       .count(field =>
         field.y == to.y && field.ring == to.ring && field.color == to.color
-      ) == board.size
-    val possibleMillOnColumn = board.fields
+      ) == boardAfterTurn.size
+    val possibleMillOnColumn = boardAfterTurn.fields
       .count(field =>
         field.x == to.x && field.ring == to.ring && field.color == to.color
-      ) == board.size
+      ) == boardAfterTurn.size
     val isMiddlePoint =
-      to.x == Math.floor(board.size / 2) || to.y == Math.floor(board.size / 2)
+      to.x == Math.floor(boardAfterTurn.size / 2) || to.y == Math.floor(
+        boardAfterTurn.size / 2
+      )
     if (isMiddlePoint) {
-      val possibleMillOnRing = board.fields
+      val possibleMillOnRing = boardAfterTurn.fields
         .count(field =>
           field.y == to.y && field.x == to.x && field.color == to.color
-        ) == board.size
-      possibleMillOnRow || possibleMillOnColumn || possibleMillOnRing
+        ) == boardAfterTurn.size
+      return possibleMillOnRow || possibleMillOnColumn || possibleMillOnRing
     }
     possibleMillOnColumn || possibleMillOnRow
   }
