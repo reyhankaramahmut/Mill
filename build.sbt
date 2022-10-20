@@ -6,6 +6,7 @@ lazy val root = project
     name := "Mill",
     version := "0.1.0-SNAPSHOT",
     scalaVersion := scala3Version,
+    javacOptions ++= Seq("-encoding", "UTF-8"),
     libraryDependencies ++= Seq(
       "org.scalactic" %% "scalactic" % "3.2.13",
       "org.scalatest" %% "scalatest" % "3.2.13" % "test"
