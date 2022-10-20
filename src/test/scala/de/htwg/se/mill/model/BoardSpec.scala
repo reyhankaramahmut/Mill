@@ -40,7 +40,7 @@ class BoardSpec extends AnyWordSpec with Matchers {
         Board.withSize(4).isFailure should be(true)
       }
       "result in a failure when the size is larger than nine" in {
-        Board.withSize(10).isFailure should be(true)
+        Board.withSize(11).isFailure should be(true)
       }
       "result in a success when the size is correct" in {
         Board.withSize().isSuccess should be(true)
@@ -53,8 +53,7 @@ class BoardSpec extends AnyWordSpec with Matchers {
         board.size should be(3)
       }
       "have a nine mens morris string representation" in {
-        val boardString = board.toString
-        boardString should be("""
+        board.toString should be("""
 ⚫――――――――――――⚫――――――――――――⚫
 │   ⚫――――――――⚫――――――――⚫   │
 │   │   ⚫――――⚫――――⚫   │   │
@@ -64,6 +63,14 @@ class BoardSpec extends AnyWordSpec with Matchers {
 │   │   ⚫――――⚫――――⚫   │   │
 │   ⚫――――――――⚫――――――――⚫   │
 ⚫――――――――――――⚫――――――――――――⚫""")
+      }
+      "have a fields dump with correct fields representation" in {
+        board.fieldsDump should be(
+          "(0, 0, 0),(1, 0, 0),(2, 0, 0),(0, 1, 0),(2, 1, 0),(0, 2, 0),(1, 2, 0),(2, 2, 0),(0, 0, 1),(1, 0, 1),(2, 0, 1),(0, 1, 1),(2, 1, 1),(0, 2, 1),(1, 2, 1),(2, 2, 1),(0, 0, 2),(1, 0, 2),(2, 0, 2),(0, 1, 2),(2, 1, 2),(0, 2, 2),(1, 2, 2),(2, 2, 2)"
+        )
+      }
+      "equal to a board with the same size and the same fields" in {
+        board should be(Board(nineMensMorrisFields, board.size))
       }
     }
     "created with apply i.e. default constructor with " +
