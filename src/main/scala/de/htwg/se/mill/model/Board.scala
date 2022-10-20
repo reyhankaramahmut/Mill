@@ -6,6 +6,7 @@ import scala.collection.immutable.ListMap
 trait Board {
   def fields: List[Field]
   def size: Int
+  def fieldsDump: String
 }
 
 object Board {
@@ -14,6 +15,11 @@ object Board {
     val lineHeight = 1
     val barWidth = 4
     val spaceWidth = 3
+    override def equals(board: Any): Boolean = board match {
+      case b: Board =>
+        b.size.equals(size) && b.fields.equals(fields)
+      case _ => false
+    }
     override def toString(): String = {
       def bar(width: Int = barWidth) = "―" * width
       def line(height: Int = lineHeight) = "│" * height
@@ -64,9 +70,9 @@ object Board {
   def withSize(size: Int = 3): Try[Board] = {
     // check if board size is valid
     if (size < 3 || size % 2 == 0 || size > 9)
-      Failure(
+      return Failure(
         IllegalArgumentException(
-          "Invalid board size. Should be uneven and greater than 2."
+          "Invalid board size. Should be uneven and greater than 2 and less than 10."
         )
       )
     Success(
