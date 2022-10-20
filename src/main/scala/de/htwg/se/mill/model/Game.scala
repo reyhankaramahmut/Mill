@@ -15,7 +15,7 @@ import scala.util.{Try, Success, Failure}
 3 ⚫――――――――――――⚫――――――――――――⚫
  */
 
-final case class Game(
+case class Game(
     board: Board,
     players: Vector[Player],
     state: GameState = GameState.Setting
