@@ -3,6 +3,18 @@ import de.htwg.se.mill.model.Board
 import scala.collection.immutable.ListMap
 
 val nineMensMorris = Board.withSize().get
+val test1 = nineMensMorris.toString
+  == """
+⚫――――――――――――⚫――――――――――――⚫
+│   ⚫――――――――⚫――――――――⚫   │
+│   │   ⚫――――⚫――――⚫   │   │
+│   │   │            │   │   │
+⚫――⚫――⚫         ⚫――⚫――⚫
+│   │   │            │   │   │
+│   │   ⚫――――⚫――――⚫   │   │
+│   ⚫――――――――⚫――――――――⚫   │
+⚫――――――――――――⚫――――――――――――⚫"""
+val fields = nineMensMorris.fields
 val largestRow = nineMensMorris.fields.maxBy(_.y).y
 val upperSection = nineMensMorris.fields
   .filter(field => field.y == 0)
