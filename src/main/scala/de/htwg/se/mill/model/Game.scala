@@ -25,12 +25,12 @@ case class Game(
       && field.y >= 0 && field.ring < board.size && field.ring >= 0
       && board.fields
         .find(f => f.equals(field))
-        .get
-        .color == field.unsetFieldColor
+        .map(f => f.color == field.unsetFieldColor)
+        .getOrElse(false)
 
   def isValidMove(from: Field, to: Field): Boolean = isValidSet(to) &&
-    Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
-    ^ Math.abs(from.ring - to.ring) == 1
+    (Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
+      ^ Math.abs(from.ring - to.ring) == 1)
 
   def isMill(to: Field, board: Board): Boolean = {
     val possibleMillOnRow = board.fields
