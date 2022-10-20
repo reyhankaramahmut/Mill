@@ -58,13 +58,16 @@ final class TUI {
             )
           ) match {
           case Some(f: Field) => { field = f }
-          case None =>
+          case None => {
             return Failure(
               IllegalArgumentException(
-                "Your command is wrong. Please check it again. The field position provided is invalid."
+                "Your command is wrong. Please check it again. " +
+                  "The field position provided is invalid."
               )
             )
+          }
         }
+
         // moving, flying
         if (fields.length > 1) {
           var to = Field(0, 0, 0)
@@ -79,12 +82,14 @@ final class TUI {
               )
             ) match {
             case Some(f: Field) => { to = f }
-            case None =>
+            case None => {
               return Failure(
                 IllegalArgumentException(
-                  "Your command is wrong.  Please check it again.The field position where the piece should be moved to is invalid."
+                  "Your command is wrong. Please check it again. " +
+                    "The field position where the piece should be moved to is invalid."
                 )
               )
+            }
           }
           game.movePiece(player, field, to)
         }
