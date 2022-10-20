@@ -27,7 +27,7 @@ class GameSpec extends AnyWordSpec with Matchers {
     val players = Vector(melanie, reyhan)
     val game = Game(board, players)
     val firstField = Field(0, 0, 0)
-    "is set a piece" should {
+    "is set a piece correctly" should {
       "be not valid if its horizontal location is outside of the board" in {
         game.isValidSet(Field(3, 0, 0)) should be(false)
         game.isValidSet(Field(-1, 0, 0)) should be(false)
@@ -72,5 +72,21 @@ class GameSpec extends AnyWordSpec with Matchers {
         ).isValidSet(Field(1, 0, 0)) should be(true)
       }
     }
+    "is moved a piece correctly" should {
+      "be not valid if there is a difference in x or y or ring" in {
+        game.isValidMove(firstField, Field(-1, 0, 1)) should be(false)
+        game.isValidMove(firstField, Field(1, 1, 1)) should be(false)
+        game.isValidMove(firstField, Field(1, 1, 0)) should be(false)
+        game.isValidMove(firstField, Field(1, 0, 1)) should be(false)
+        game.isValidMove(firstField, Field(0, 1, 1)) should be(false)
+        game.isValidMove(firstField, Field(0, 0, 0)) should be(false)
+      }
+      "be valid if there is only one difference in either x or y or ring" in {
+        game.isValidMove(firstField, Field(1, 0, 0)) should be(true)
+        game.isValidMove(firstField, Field(0, 1, 0)) should be(true)
+        game.isValidMove(firstField, Field(0, 0, 1)) should be(true)
+      }
+    }
+    "is moved a piece to a mill correctly" should {}
   }
 }
