@@ -18,5 +18,8 @@ lazy val root = project
       Seq(JacocoReportFormats.ScalaHTML, JacocoReportFormats.XML),
       "utf-8"
     ),
-    jacocoExcludes := Seq("de.htwg.se.mill.Mill*")
+    jacocoExcludes := Seq(
+      "de.htwg.se.mill.Mill*",
+      "de.htwg.se.mill.util*"
+    )
   )
