@@ -20,6 +20,6 @@ lazy val root = project
     ),
     jacocoExcludes := Seq(
       "de.htwg.se.mill.Mill*",
-      "de.htwg.se.mill.util*"
+      "de.htwg.se.mill.aview*"
     )
   )

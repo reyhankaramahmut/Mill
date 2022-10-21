@@ -9,10 +9,10 @@ import de.htwg.se.mill.model.GameState
 import scala.util.{Success, Failure}
 import util.control.Breaks._
 
-object Muehle {
+object Mill {
   def main(args: Array[String]): Unit = {
     println("""
-Welcome to Muehle a strategy board game.
+Welcome to Mill a strategy board game.
 To set or remove a piece please use a command like 123
 where 1 stands for the first column, 2 stands for the second row
 and 3 stands for the third ring.

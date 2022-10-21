@@ -26,7 +26,7 @@ class PlayerSpec extends AnyWordSpec with Matchers {
         player should not equal (differentPlayer)
       }
       "not equal a player with a different name" in {
-        val differentPlayer = Player("Alex", "🔴")
+        val differentPlayer = Player("Reyhan", "🔴")
         player should not equal (differentPlayer)
       }
       "not equal a player with a different type" in {
