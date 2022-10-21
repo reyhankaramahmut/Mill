@@ -7,6 +7,7 @@ trait Board {
   def fields: List[Field]
   def size: Int
   def fieldsDump: String
+  def getField(x: Int, y: Int, ring: Int): Option[Field]
 }
 
 object Board {
@@ -15,6 +16,17 @@ object Board {
     val lineHeight = 1
     val barWidth = 4
     val spaceWidth = 3
+
+    override def getField(x: Int, y: Int, ring: Int): Option[Field] = fields
+      .find(f =>
+        f.equals(
+          Field(
+            x,
+            y,
+            ring
+          )
+        )
+      )
     override def equals(board: Any): Boolean = board match {
       case b: Board =>
         b.size.equals(size) && b.fields.equals(fields)
@@ -63,7 +75,7 @@ object Board {
         + dividerRow
         + lowerSection
     }
-    def fieldsDump = fields
+    override def fieldsDump = fields
       .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
       .mkString(",")
   }
@@ -92,4 +104,5 @@ object Board {
   def apply(fields: List[Field], size: Int): Board = {
     NewBoard(fields, size)
   }
+
 }
