@@ -1,23 +1,21 @@
 package de.htwg.se.mill.model
 
 import scala.util.{Try, Success, Failure}
-
 /*
   1             2             3
 1 ⚫――――――――――――⚫――――――――――――⚫
   │   ⚫――――――――⚫――――――――⚫   │ 1
-  │   │   ⚫――――⚫――――⚫   │ 2   │
-  │   │   │            │ 3  │   │
+  │   │   ⚫――――⚫――――⚫   │ 2 │
+  │   │   │            │ 3 │   │
 2 ⚫――⚫――⚫          ⚫――⚫――⚫
   │   │   │            │   │   │
   │   │   ⚫――――⚫――――⚫   │   │
   │   ⚫――――――――⚫――――――――⚫   │
 3 ⚫――――――――――――⚫――――――――――――⚫
  */
-
 case class Game(
     board: Board,
-    players: Vector[Player],
+    players: Array[Player],
     state: GameState = GameState.Setting
 ) {
   override def equals(game: Any): Boolean = game match {
@@ -61,13 +59,17 @@ case class Game(
     }
     possibleMillOnColumn || possibleMillOnRow
   }
-  def everyPlayerHasSetItsStones(players: Vector[Player]): Boolean = players
+  def everyPlayerHasSetItsStones(players: Array[Player]): Boolean = players
     .count(player =>
       player.setStones == Math.pow(board.size, 2)
     ) == players.length
-
+  def isSetting = state == GameState.Setting
+  def isMoving = state == GameState.Moving
+  def isFlying = state == GameState.Flying
+  def isRemoving = state == GameState.Removing
+  def isWon = state == GameState.Won
   def setPiece(player: Player, field: Field): Try[Game] = {
-    if (state != GameState.Setting)
+    if (!isSetting)
       return Failure(
         IllegalArgumentException(
           "The piece was not set. All pieces are already set."
@@ -100,7 +102,7 @@ case class Game(
   }
 
   def movePiece(player: Player, from: Field, to: Field): Try[Game] = {
-    if (state != GameState.Moving && state != GameState.Flying)
+    if (!isMoving && !isFlying)
       return Failure(
         IllegalArgumentException(
           "The piece was not moved. Please provide a valid input for moving or flying a piece."
@@ -114,7 +116,7 @@ case class Game(
         )
       )
 
-    if (state == GameState.Moving) {
+    if (isMoving) {
       if (!isValidMove(from, to))
         return Failure(
           IllegalArgumentException(
@@ -150,7 +152,7 @@ case class Game(
   }
 
   def removePiece(player: Player, field: Field): Try[Game] = {
-    if (state != GameState.Removing)
+    if (!isRemoving)
       return Failure(
         IllegalArgumentException(
           "The piece was not removed. Please provide a valid input for removing a piece."
