@@ -1,135 +1,133 @@
 package de.htwg.se.mill.aview
 
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.matchers.should.Matchers
-import de.htwg.se.mill.model.Player
-import de.htwg.se.mill.model.Game
-import de.htwg.se.mill.model.Board
-import de.htwg.se.mill.model.GameState
-import de.htwg.se.mill.model.Field
-import de.htwg.se.mill.controller.Controller
+import scala.io.StdIn.readLine
+import de.htwg.se.mill.util.Observer
+import de.htwg.se.muill.controller.Controller
 
-class TUISpec extends AnyWordSpec with Matchers {
-  "A new TUI" when {
+final case class TUI(controller: Controller) extends Observer {
+  controller.add(this)
+  def run = {
+    println("""
+Welcome to Muehle a strategy board game.
+To set or remove a piece please use a command like 123
+where 1 stands for the first column, 2 stands for the second row
+and 3 stands for the third ring.
+To move a piece please use a command like 111 112 where the first
+part of the command 111 indicates the piece field before moving
+and the part of the command 112 indicates the piece field after moving.
+You can exit the game by pressing q key or start a new game by pressing n key.
 
-    val melanie = Player("Melanie", "🔴")
-    val reyhan = Player("Reyhan", "🔵")
-    val players = Array(melanie, reyhan)
-    val board = Board.withSize().get
-    val controller = Controller(board)
-    val tui = TUI(controller)
+Before starting please enter the name of the first player.""")
+    controller.addFirstPlayer(readLine)
+    println(
+      "Now please enter the name of the second player to play."
+    )
+    controller.addSecondPlayer(readLine)
+    controller.newGame
+    inputLoop
+  }
+  override def update(error: Option[Throwable]) = {
+    println(if (error.isDefined) error else controller.currentGame.get.board)
+  }
+  private def inputLoop: Unit = {
+    val input = readLine(
+      s"${controller.currentPlayer.get}'s turn(${controller.currentGame.get.state}): "
+    )
+    if (!onInput(input)) return
+    inputLoop
+  }
 
-    "processing input" should {
-      "yield the game successfully on entering q" in {
-        val processed = tui.processInput(melanie, "q", game)
-        processed.isSuccess should be(true)
-        processed.get.equals(game) should be(true)
+  def onInput(
+      input: String
+  ): Boolean = {
+    val currentGame = controller.currentGame.get
+    val currentPlayer = controller.currentPlayer.get
+    input match {
+      case "q" => false
+      case "n" => {
+        controller.newGame
+        return true
       }
-      "yield a new game succesfully if a board could be created on entering n" in {
-        val processed =
-          tui.processInput(melanie, "n", game.copy(state = GameState.Moving))
-        processed.isSuccess should be(true)
-        processed.get.equals(game) should be(true)
-      }
-      "fail if a board could not be created on entering n" in {
-        val processed =
-          tui.processInput(
-            melanie,
-            "n",
-            game.copy(board = Board(game.board.fields, 4))
-          )
-        processed.isFailure should be(true)
-      }
-      "fail if the game state is either Setting or Removing on entering an invalid command" in {
-        tui
-          .processInput(
-            melanie,
-            "1",
-            game.copy(state = GameState.Setting)
-          )
-          .isFailure should be(true)
-        tui
-          .processInput(
-            melanie,
-            "121 123",
-            game.copy(state = GameState.Removing)
-          )
-          .isFailure should be(true)
-      }
-      "fail if the game state is either Moving or Flying on entering an invalid command" in {
-        tui
-          .processInput(
-            melanie,
-            "111",
-            game.copy(state = GameState.Moving)
-          )
-          .isFailure should be(true)
-        tui
-          .processInput(
-            melanie,
-            "11 123",
-            game.copy(state = GameState.Flying)
-          )
-          .isFailure should be(true)
-      }
-      "fail if the field in the first command could not be found" in {
-        tui
-          .processInput(
-            melanie,
-            "221",
-            game.copy(state = GameState.Setting)
-          )
-          .isFailure should be(true)
-      }
-      "fail if the field in the second command could not be found" in {
-        tui
-          .processInput(
-            melanie,
-            "112 221",
-            game.copy(state = GameState.Moving)
-          )
-          .isFailure should be(true)
-      }
-      "yield a game with a moved piece if there are two valid commands" in {
-        tui
-          .processInput(
-            melanie,
-            "111 211",
-            game.copy(
-              board = Board(
-                fields = game.board.fields.updated(
-                  game.board.fields.indexOf(Field(0, 0, 0)),
-                  Field(0, 0, 0, melanie.color)
-                ),
-                game.board.size
-              ),
-              state = GameState.Moving
+      // input notation: (columnrowring) e.g. 111 121 or 111
+      case _ => {
+        val commandPattern = s"[1-${currentGame.board.size}]{3}"
+
+        if (
+          (currentGame.isSetting || currentGame.isRemoving) && !input
+            .matches(commandPattern)
+        ) {
+          update(
+            Some(
+              IllegalArgumentException(
+                "Your command is wrong. Please check it again. " +
+                  "Should be something like 111 for removing or setting pieces."
+              )
             )
           )
-          .isSuccess should be(true)
-      }
-      "yield a game with a set piece if there is one command and the game state is Setting" in {
-        tui
-          .processInput(melanie, "111", game.copy(state = GameState.Setting))
-          .isSuccess should be(true)
-      }
-      "yield a game with a removed piece if there is one command and the game state is Removing" in {
-        tui
-          .processInput(
-            melanie,
-            "111",
-            game.copy(
-              board = Board(
-                fields = game.board.fields.updated(
-                  game.board.fields.indexOf(Field(0, 0, 0)),
-                  Field(0, 0, 0, reyhan.color)
-                ),
-                game.board.size
-              ),
-              state = GameState.Removing
+          return true
+        }
+        if (
+          (currentGame.isMoving || currentGame.isFlying) && !input
+            .matches(s"$commandPattern $commandPattern")
+        ) {
+          update(
+            Some(
+              IllegalArgumentException(
+                "Your command is wrong. Please check it again. " +
+                  "Should be something like 111 121 for moving pieces."
+              )
             )
           )
-          .isSuccess should be(true)
+          return true
+        }
+
+        val fields = input.split(" ").map(field => field.split(""))
+        val field = currentGame.board.getField(
+          fields(0)(0).toInt - 1,
+          fields(0)(1).toInt - 1,
+          fields(0)(2).toInt - 1
+        )
+        if (field.isEmpty) {
+          update(
+            Some(
+              IllegalArgumentException(
+                "Your command is wrong. Please check it again. " +
+                  "The field position provided is invalid."
+              )
+            )
+          )
+          return true
+        }
+        if (fields.length > 1) {
+          val to = currentGame.board.getField(
+            fields(1)(0).toInt - 1,
+            fields(1)(1).toInt - 1,
+            fields(1)(2).toInt - 1
+          )
+          if (to.isEmpty) {
+            update(
+              Some(
+                IllegalArgumentException(
+                  "Your command is wrong. Please check it again. " +
+                    "The field position where the piece should be moved to is invalid."
+                )
+              )
+            )
+            return true
+          }
+          controller.movePiece(field.get, to.get)
+        } else {
+          if (currentGame.isSetting)
+            controller.setPiece(field.get)
+          else controller.removePiece(field.get)
+        }
+        if (currentGame.isWon) {
+          println(
+            s"Congratulations! $currentPlayer has won the game!\nStarting new game."
+          )
+          controller.newGame
+        }
+        return true
       }
     }
   }
