@@ -7,14 +7,17 @@ import de.htwg.se.mill.model.Game
 import de.htwg.se.mill.model.Board
 import de.htwg.se.mill.model.GameState
 import de.htwg.se.mill.model.Field
+import de.htwg.se.mill.controller.Controller
 
 class TUISpec extends AnyWordSpec with Matchers {
   "A new TUI" when {
-    val tui = TUI()
+
     val melanie = Player("Melanie", "🔴")
     val reyhan = Player("Reyhan", "🔵")
-    val players = Vector(melanie, reyhan)
-    val game = Game(Board.withSize().get, players)
+    val players = Array(melanie, reyhan)
+    val board = Board.withSize().get
+    val controller = Controller(board)
+    val tui = TUI(controller)
 
     "processing input" should {
       "yield the game successfully on entering q" in {
