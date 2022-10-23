@@ -8,7 +8,7 @@ class GameSpec extends AnyWordSpec with Matchers {
     "created with a board and two players" should {
       val board = Board.withSize().get
       val melanie = Player("Melanie", "🔴")
-      val players = Vector(melanie, Player("Reyhan", "🔵"))
+      val players = Array(melanie, Player("Reyhan", "🔵"))
       val game = Game(board, players)
       "have the board" in {
         game.board should be(board)
@@ -34,7 +34,7 @@ class GameSpec extends AnyWordSpec with Matchers {
       }
       "not equal a game with different players" in {
         game.equals(
-          game.copy(players = Vector(melanie, Player("max", melanie.color, 2)))
+          game.copy(players = Array(melanie, Player("max", melanie.color, 2)))
         ) should be(false)
       }
       "not equal a game with a different game state" in {
@@ -54,7 +54,7 @@ class GameSpec extends AnyWordSpec with Matchers {
     val board = Board.withSize().get
     val melanie = Player("Melanie", "🔴")
     val reyhan = Player("Reyhan", "🔵")
-    val players = Vector(melanie, reyhan)
+    val players = Array(melanie, reyhan)
     val game = Game(board, players)
     val firstField = Field(0, 0, 0)
     "is set a piece correctly" should {
