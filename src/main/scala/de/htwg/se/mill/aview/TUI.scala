@@ -4,6 +4,13 @@ import scala.io.StdIn.readLine
 import de.htwg.se.mill.util.Observer
 import de.htwg.se.mill.controller.Controller
 
+enum TUIStatusCode {
+  case QUIT, NEW_GAME, WRONG_SETTING_OR_REMOVING_COMMAND,
+    WRONG_MOVING_OR_FLYING_COMMAND,
+    WRONG_FIRST_FIELD, WRONG_SECOND_FIELD, MOVING_PIECE_FAILED,
+    SETTING_PIECE_FAILED, REMOVING_PIECE_FAILED, SUCCESSFUL
+}
+
 final case class TUI(controller: Controller) extends Observer {
   controller.add(this)
   def run = {
@@ -18,27 +25,44 @@ and the part of the command 112 indicates the piece field after moving.
 You can exit the game by pressing q key or start a new game by pressing n key.
 
 Before starting please enter the name of the first player.""")
-    controller.addFirstPlayer(readLine())
+    controller.addFirstPlayer(readLine)
     println(
       "Now please enter the name of the second player to play."
     )
-    controller.addSecondPlayer(readLine())
+    controller.addSecondPlayer(readLine)
     controller.newGame
     inputLoop
   }
-  override def update(error: Option[Throwable]) = {
-    println(if (error.isDefined) error else controller.currentGame.get.board)
+  override def update(message: Option[String]) = {
+    println(
+      if (message.isDefined) message else controller.currentGame.get.board
+    )
   }
   private def inputLoop: Unit = {
+    val input = readLine(
+      s"${controller.currentPlayer.get}'s turn(${controller.currentGame.get.state}): "
+    )
+    if (onInput(input) == TUIStatusCode.QUIT) return
+    inputLoop
+  }
+
+  def onInput(
+      input: String
+  ): TUIStatusCode = {
     val currentGame = controller.currentGame.get
     val currentPlayer = controller.currentPlayer.get
-    val input = readLine(
-      s"${currentPlayer}'s turn(${currentGame.state}): "
-    )
     input match {
-      case "q" =>
-      case "n" => controller.newGame
-      // input notation: (columnrowring) e.g. 111 121 or 111
+      // quit the game
+      case "q" => TUIStatusCode.QUIT
+      // start a new game
+      case "n" => {
+        controller.newGame
+        return TUIStatusCode.NEW_GAME
+      }
+      /*
+        play the game
+        input notation: (columnrowring) e.g. 111 121 or 111
+       */
       case _ => {
         val commandPattern = s"[1-${currentGame.board.size}]{3}"
 
@@ -48,13 +72,11 @@ Before starting please enter the name of the first player.""")
         ) {
           update(
             Some(
-              IllegalArgumentException(
-                "Your command is wrong. Please check it again. " +
-                  "Should be something like 111 for removing or setting pieces."
-              )
+              "Your command is wrong. Please check it again. " +
+                "Should be something like 111 for removing or setting pieces."
             )
           )
-          inputLoop
+          return TUIStatusCode.WRONG_SETTING_OR_REMOVING_COMMAND
         }
         if (
           (currentGame.isMoving || currentGame.isFlying) && !input
@@ -62,13 +84,11 @@ Before starting please enter the name of the first player.""")
         ) {
           update(
             Some(
-              IllegalArgumentException(
-                "Your command is wrong. Please check it again. " +
-                  "Should be something like 111 121 for moving pieces."
-              )
+              "Your command is wrong. Please check it again. " +
+                "Should be something like 111 121 for moving pieces."
             )
           )
-          inputLoop
+          return TUIStatusCode.WRONG_MOVING_OR_FLYING_COMMAND
         }
 
         val fields = input.split(" ").map(field => field.split(""))
@@ -80,13 +100,11 @@ Before starting please enter the name of the first player.""")
         if (field.isEmpty) {
           update(
             Some(
-              IllegalArgumentException(
-                "Your command is wrong. Please check it again. " +
-                  "The field position provided is invalid."
-              )
+              "Your command is wrong. Please check it again. " +
+                "The field position provided is invalid."
             )
           )
-          inputLoop
+          return TUIStatusCode.WRONG_FIRST_FIELD
         }
         if (fields.length > 1) {
           val to = currentGame.board.getField(
@@ -97,27 +115,38 @@ Before starting please enter the name of the first player.""")
           if (to.isEmpty) {
             update(
               Some(
-                IllegalArgumentException(
-                  "Your command is wrong. Please check it again. " +
-                    "The field position where the piece should be moved to is invalid."
-                )
+                "Your command is wrong. Please check it again. " +
+                  "The field position where the piece should be moved to is invalid."
               )
             )
-            inputLoop
+            return TUIStatusCode.WRONG_SECOND_FIELD
           }
-          controller.movePiece(field.get, to.get)
+          if (controller.movePiece(field.get, to.get).isDefined) {
+            return TUIStatusCode.MOVING_PIECE_FAILED
+          }
         } else {
-          if (currentGame.isSetting)
-            controller.setPiece(field.get)
-          else controller.removePiece(field.get)
+          if (
+            currentGame.isSetting && controller.setPiece(field.get).isDefined
+          ) {
+            return TUIStatusCode.SETTING_PIECE_FAILED
+          }
+          if (
+            currentGame.isRemoving && controller
+              .removePiece(field.get)
+              .isDefined
+          ) {
+            return TUIStatusCode.REMOVING_PIECE_FAILED
+          }
         }
-        if (currentGame.isWon) {
-          println(
-            s"Congratulations! $currentPlayer has won the game!\nStarting new game."
+        if (controller.currentGame.get.isWon) {
+          update(
+            Some(
+              s"Congratulations! $currentPlayer has won the game!\nStarting new game."
+            )
           )
           controller.newGame
         }
-        inputLoop
+        return TUIStatusCode.SUCCESSFUL
       }
     }
   }

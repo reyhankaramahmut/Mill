@@ -16,13 +16,15 @@ import scala.util.{Try, Success, Failure}
 case class Game(
     board: Board,
     players: Array[Player],
-    state: GameState = GameState.Setting
+    state: GameState = GameState.Setting,
+    setStones: Int = 0
 ) {
   override def equals(game: Any): Boolean = game match {
     case g: Game =>
-      g.board.equals(board) && g.players.equals(players) && g.state.equals(
-        state
-      )
+      g.board.equals(board) && g.players.sameElements(players) && g.state
+        .equals(
+          state
+        )
     case _ => false
   }
   def isValidSet(field: Field): Boolean =
@@ -59,10 +61,8 @@ case class Game(
     }
     possibleMillOnColumn || possibleMillOnRow
   }
-  def everyPlayerHasSetItsStones(players: Array[Player]): Boolean = players
-    .count(player =>
-      player.setStones == Math.pow(board.size, 2)
-    ) == players.length
+  def everyPlayerHasSetItsStones =
+    setStones == Math.pow(board.size, 2).toInt * players.length
   def isSetting = state == GameState.Setting
   def isMoving = state == GameState.Moving
   def isFlying = state == GameState.Flying
@@ -90,15 +90,18 @@ case class Game(
       ),
       board.size
     )
-    val playedTurnPlayers = players.updated(
-      players.indexOf(player),
-      Player(player.name, player.color, player.setStones + 1)
-    )
     val playedTurnState =
       if (isMill(newField, playedTurnBoard)) GameState.Removing
-      else if (everyPlayerHasSetItsStones(playedTurnPlayers)) GameState.Moving
+      else if (copy(setStones = setStones + 1).everyPlayerHasSetItsStones)
+        GameState.Moving
       else state
-    Success(Game(playedTurnBoard, playedTurnPlayers, playedTurnState))
+    Success(
+      copy(
+        board = playedTurnBoard,
+        state = playedTurnState,
+        setStones = setStones + 1
+      )
+    )
   }
 
   def movePiece(player: Player, from: Field, to: Field): Try[Game] = {
@@ -148,7 +151,7 @@ case class Game(
     val playedTurnState =
       if (isMill(newField, playedTurnBoard)) GameState.Removing
       else state
-    Success(Game(playedTurnBoard, players, playedTurnState))
+    Success(copy(board = playedTurnBoard, state = playedTurnState))
   }
 
   def removePiece(player: Player, field: Field): Try[Game] = {
@@ -192,7 +195,7 @@ case class Game(
     val otherPlayersPieces = playedTurnBoard.fields.count(field =>
       field.color == players.find(p => !p.equals(player)).get.color
     )
-    if (everyPlayerHasSetItsStones(players)) {
+    if (everyPlayerHasSetItsStones) {
       playedTurnState = GameState.Moving
       if (otherPlayersPieces < board.size) {
         playedTurnState = GameState.Won
@@ -200,6 +203,6 @@ case class Game(
         playedTurnState = GameState.Flying
       }
     }
-    Success(Game(playedTurnBoard, players, playedTurnState))
+    Success(copy(board = playedTurnBoard, state = playedTurnState))
   }
 }
