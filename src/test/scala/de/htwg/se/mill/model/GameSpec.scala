@@ -34,7 +34,7 @@ class GameSpec extends AnyWordSpec with Matchers {
       }
       "not equal a game with different players" in {
         game.equals(
-          game.copy(players = Array(melanie, Player("max", melanie.color, 2)))
+          game.copy(players = Array(melanie, Player("max", melanie.color)))
         ) should be(false)
       }
       "not equal a game with a different game state" in {
@@ -236,41 +236,21 @@ class GameSpec extends AnyWordSpec with Matchers {
     }
     "every player has set its stones" should {
       "be invalid if one player has not set its stones" in {
-        game.everyPlayerHasSetItsStones(game.players) should be(false)
+        game.copy(setStones = 1).everyPlayerHasSetItsStones should be(false)
       }
       "be invalid if both players have set too many stones" in {
-        game.everyPlayerHasSetItsStones(
-          game.players
-            .updated(
-              0,
-              game
-                .players(0)
-                .copy(setStones = Math.pow(game.board.size, 2).toInt + 1)
-            )
-            .updated(
-              1,
-              game
-                .players(1)
-                .copy(setStones = Math.pow(game.board.size, 2).toInt)
-            )
-        ) should be(false)
+        game
+          .copy(setStones =
+            Math.pow(game.board.size, 2).toInt * game.players.length + 1
+          )
+          .everyPlayerHasSetItsStones should be(false)
       }
       "be valid if both players have set their stones" in {
-        game.everyPlayerHasSetItsStones(
-          game.players
-            .updated(
-              0,
-              game
-                .players(0)
-                .copy(setStones = Math.pow(game.board.size, 2).toInt)
-            )
-            .updated(
-              1,
-              game
-                .players(1)
-                .copy(setStones = Math.pow(game.board.size, 2).toInt)
-            )
-        ) should be(true)
+        game
+          .copy(setStones =
+            Math.pow(game.board.size, 2).toInt * game.players.length
+          )
+          .everyPlayerHasSetItsStones should be(true)
       }
     }
     "is set a piece to a field" should {
@@ -319,15 +299,11 @@ class GameSpec extends AnyWordSpec with Matchers {
       }
       "be valid with a new game state of Moving" in {
         val gameAfterTurn = game
-          .copy(players =
-            players
-              .updated(
-                1,
-                reyhan.copy(setStones = Math.pow(game.board.size, 2).toInt)
-              )
+          .copy(setStones =
+            Math.pow(game.board.size, 2).toInt * game.players.length - 1
           )
           .setPiece(
-            melanie.copy(setStones = Math.pow(game.board.size, 2).toInt - 1),
+            melanie,
             firstField
           )
         gameAfterTurn.isSuccess should be(true)
@@ -466,15 +442,6 @@ class GameSpec extends AnyWordSpec with Matchers {
         "and the other players pieces are more than the board size" in {
           val gameAfterTurn = game
             .copy(
-              players = players
-                .updated(
-                  0,
-                  melanie.copy(setStones = Math.pow(game.board.size, 2).toInt)
-                )
-                .updated(
-                  1,
-                  reyhan.copy(setStones = Math.pow(game.board.size, 2).toInt)
-                ),
               board = Board(
                 game.board.fields
                   .updated(
@@ -499,7 +466,9 @@ class GameSpec extends AnyWordSpec with Matchers {
                   ),
                 game.board.size
               ),
-              state = GameState.Removing
+              state = GameState.Removing,
+              setStones =
+                Math.pow(game.board.size, 2).toInt * game.players.length
             )
             .removePiece(melanie, firstField.copy(color = reyhan.color))
 
@@ -509,16 +478,7 @@ class GameSpec extends AnyWordSpec with Matchers {
       "succeed with a state of Won if the other players pieces are less than the board size" in {
         val gameAfterTurn = game
           .copy(
-            players = players
-              .updated(
-                0,
-                melanie.copy(setStones = Math.pow(game.board.size, 2).toInt)
-              )
-              .updated(
-                1,
-                reyhan.copy(setStones = Math.pow(game.board.size, 2).toInt)
-              ),
-            board = Board(
+            Board(
               game.board.fields
                 .updated(
                   game.board.fields.indexOf(firstField),
@@ -534,7 +494,8 @@ class GameSpec extends AnyWordSpec with Matchers {
                 ),
               game.board.size
             ),
-            state = GameState.Removing
+            state = GameState.Removing,
+            setStones = Math.pow(game.board.size, 2).toInt * game.players.length
           )
           .removePiece(melanie, firstField.copy(color = reyhan.color))
 
@@ -544,15 +505,6 @@ class GameSpec extends AnyWordSpec with Matchers {
       "succeed with a state of Flying if the other players pieces are equal to the board size" in {
         val gameAfterTurn = game
           .copy(
-            players = players
-              .updated(
-                0,
-                melanie.copy(setStones = Math.pow(game.board.size, 2).toInt)
-              )
-              .updated(
-                1,
-                reyhan.copy(setStones = Math.pow(game.board.size, 2).toInt)
-              ),
             board = Board(
               game.board.fields
                 .updated(
@@ -573,7 +525,8 @@ class GameSpec extends AnyWordSpec with Matchers {
                 ),
               game.board.size
             ),
-            state = GameState.Removing
+            state = GameState.Removing,
+            setStones = Math.pow(game.board.size, 2).toInt * game.players.length
           )
           .removePiece(melanie, firstField.copy(color = reyhan.color))
 

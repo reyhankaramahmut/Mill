@@ -1,7 +1,7 @@
 package de.htwg.se.mill.util
 
 trait Observer {
-  def update(error: Option[Throwable]): Unit
+  def update(message: Option[String]): Unit
 }
 
 trait Observable {
@@ -12,6 +12,6 @@ trait Observable {
   def remove(s: Observer) = {
     subscribers = subscribers.filterNot(o => o == s)
   }
-  def notifyObservers(error: Option[Throwable]) =
-    subscribers.foreach(o => o.update(error))
+  def notifyObservers(message: Option[String]) =
+    subscribers.foreach(o => o.update(message))
 }

@@ -7,7 +7,7 @@ import de.htwg.se.mill.model.Player
 import scala.util.{Try, Success, Failure}
 import de.htwg.se.mill.util.Observable
 
-final case class Controller(board: Board) extends Observable {
+final case class Controller(private val board: Board) extends Observable {
   val twoPlayers = new Array[Player](2)
   var currentGame: Option[Game] = None
   var currentPlayer: Option[Player] = None
@@ -21,40 +21,39 @@ final case class Controller(board: Board) extends Observable {
   def newGame = {
     currentGame = Some(
       Game(
-        board,
+        Board.withSize(board.size).get,
         twoPlayers
-          .updated(0, twoPlayers(0).copy(setStones = 0))
-          .updated(1, twoPlayers(1).copy(setStones = 0))
       )
     )
     currentPlayer = Some(twoPlayers(0))
     notifyObservers(None)
   }
-  private def nextTurn(gameOnNextTurn: Game) = {
-    currentGame = Some(gameOnNextTurn)
-    if (!gameOnNextTurn.isRemoving) {
-      currentPlayer = Some(
-        twoPlayers.find(p => !p.equals(currentPlayer.get)).get
-      )
+
+  def setPiece(field: Field): Option[Throwable] = onTurn(
+    currentGame.get.setPiece(currentPlayer.get, field)
+  )
+  def movePiece(from: Field, to: Field): Option[Throwable] = onTurn(
+    currentGame.get.movePiece(currentPlayer.get, from, to)
+  )
+  def removePiece(field: Field): Option[Throwable] = onTurn(
+    currentGame.get.removePiece(currentPlayer.get, field)
+  )
+
+  private def onTurn(turn: Try[Game]): Option[Throwable] =
+    turn match {
+      case Success(game: Game) => {
+        currentGame = Some(game)
+        if (!game.isRemoving) {
+          currentPlayer = Some(
+            twoPlayers.find(p => !p.equals(currentPlayer.get)).get
+          )
+        }
+        notifyObservers(None)
+        return None
+      }
+      case Failure(error) => {
+        notifyObservers(Some(error.getMessage()))
+        return Some(error)
+      }
     }
-    notifyObservers(None)
-  }
-  def setPiece(field: Field) = {
-    currentGame.get.setPiece(currentPlayer.get, field) match {
-      case Success(game: Game) => nextTurn(game)
-      case Failure(error)      => notifyObservers(Some(error))
-    }
-  }
-  def movePiece(from: Field, to: Field) = {
-    currentGame.get.movePiece(currentPlayer.get, from, to) match {
-      case Success(game: Game) => nextTurn(game)
-      case Failure(error)      => notifyObservers(Some(error))
-    }
-  }
-  def removePiece(field: Field) = {
-    currentGame.get.removePiece(currentPlayer.get, field) match {
-      case Success(game: Game) => nextTurn(game)
-      case Failure(error)      => notifyObservers(Some(error))
-    }
-  }
 }
