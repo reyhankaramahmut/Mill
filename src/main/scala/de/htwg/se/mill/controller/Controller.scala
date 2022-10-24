@@ -30,9 +30,9 @@ final case class Controller(board: Board) extends Observable {
     currentPlayer = Some(twoPlayers(0))
     notifyObservers(None)
   }
-  private def nextTurn(game: Game) = {
-    currentGame = Some(game)
-    if (!game.isRemoving) {
+  private def nextTurn(gameOnNextTurn: Game) = {
+    currentGame = Some(gameOnNextTurn)
+    if (!gameOnNextTurn.isRemoving) {
       currentPlayer = Some(
         twoPlayers.find(p => !p.equals(currentPlayer.get)).get
       )
