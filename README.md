@@ -1,3 +1,5 @@
+[![Build Status](https://app.travis-ci.com/melaniegalip/Mill.svg?branch=main)](https://app.travis-ci.com/melaniegalip/Mill)
+
 # Mill
 ## sbt project compiled with Scala 3
 
