@@ -17,8 +17,10 @@ import de.htwg.se.mill.model.{
 }
 
 class Controller(private val board: Board) extends Observable {
-  val twoPlayers = new Array[Player](2)
-  val winStrategy = WinStrategy.classicStrategy
+  private val twoPlayers = new Array[Player](2)
+  private val winStrategy = WinStrategy.classicStrategy
+  private var previousTurn: Option[Try[GameState]] = None
+  var undoCommand = new UndoCommand()
   var gameState: Option[GameState] = None
 
   def addFirstPlayer(playerName: String, playerColor: String = "🔴") = {
@@ -28,36 +30,117 @@ class Controller(private val board: Board) extends Observable {
     twoPlayers(1) = Player(playerName, playerColor)
   }
   def newGame = {
+    // delete command history
+    undoCommand = new UndoCommand()
     gameState = Some(
       SettingState(
         Game(
-          Board.withSize(board.size).get,
+          board,
           twoPlayers,
           twoPlayers(0)
         )
       )
     )
+    previousTurn = Some(Success(gameState.get))
     notifyObservers(None)
   }
 
-  def setPiece(to: Field): Option[Throwable] = onTurn(
-    gameState.get.handle(
-      GameEvent.OnSetting,
-      (to, None)
+  private def createSnapshot: Snapshot = {
+    val snapshot = new Snapshot(this, previousTurn)
+    return snapshot
+  }
+
+  // Memento
+  class Snapshot(
+      val controller: Controller,
+      val previousTurn: Option[Try[GameState]]
+  ) {
+    def restore: Option[Throwable] =
+      controller.previousTurn = previousTurn
+      previousTurn.get match {
+        case Success(state: GameState) => {
+          state match {
+            case RemovingState(game: Game) => {
+              controller.gameState = Some(state)
+            }
+            case SettingState(game: Game) => {
+              controller.gameState = Some(state)
+            }
+            case FlyingState(game: Game) => {
+              controller.gameState = Some(state)
+            }
+            case MovingState(game: Game) => {
+              controller.gameState = Some(state)
+            }
+          }
+          controller.notifyObservers(None)
+          return None
+        }
+        case Failure(error) => {
+          controller.notifyObservers(Some(error.getMessage()))
+          return Some(error)
+        }
+      }
+  }
+
+  // Command
+  class UndoCommand {
+    private var undoStack: List[Snapshot] = Nil
+    private var redoStack: List[Snapshot] = Nil
+    def backup(snapshot: Snapshot): Unit = {
+      undoStack = snapshot :: undoStack
+    }
+    def undoStep: Option[Throwable] =
+      undoStack match {
+        case Nil => None
+        case head :: stack => {
+          val result = head.restore
+          undoStack = stack
+          redoStack = head :: redoStack
+          result
+        }
+      }
+    def redoStep: Option[Throwable] =
+      redoStack match {
+        case Nil => None
+        case head :: stack => {
+          val result = head.restore
+          redoStack = stack
+          undoStack = head :: undoStack
+          result
+        }
+      }
+  }
+
+  def setPiece(to: Field): Option[Throwable] = {
+    undoCommand.backup(createSnapshot)
+    doTurn(
+      gameState.get.handle(
+        GameEvent.OnSetting,
+        (to, None)
+      )
     )
-  )
-  def movePiece(from: Field, to: Field): Option[Throwable] = onTurn(
-    gameState.get.handle(
-      GameEvent.OnMoving,
-      (from, Some(to))
+  }
+
+  def movePiece(from: Field, to: Field): Option[Throwable] = {
+    undoCommand.backup(createSnapshot)
+    doTurn(
+      gameState.get.handle(
+        GameEvent.OnMoving,
+        (from, Some(to))
+      )
     )
-  )
-  def removePiece(field: Field): Option[Throwable] = onTurn(
-    gameState.get.handle(
-      GameEvent.OnRemoving,
-      (field, None)
+  }
+
+  def removePiece(field: Field): Option[Throwable] = {
+    undoCommand.backup(createSnapshot)
+    doTurn(
+      gameState.get.handle(
+        GameEvent.OnRemoving,
+        (field, None)
+      )
     )
-  )
+  }
   def currentGameState = gameState.get match {
     case FlyingState(game: Game)   => "Flying Pieces"
     case MovingState(game: Game)   => "Moving Pieces"
@@ -72,7 +155,8 @@ class Controller(private val board: Board) extends Observable {
     gameState.get.isInstanceOf[MovingState] || gameState.get
       .isInstanceOf[FlyingState]
 
-  private def onTurn(turn: Try[GameState]): Option[Throwable] =
+  private def doTurn(turn: Try[GameState]): Option[Throwable] = {
+    previousTurn = Some(turn)
     turn match {
       case Success(state: GameState) => {
         var currentGame: Option[Game] = None
@@ -130,4 +214,5 @@ class Controller(private val board: Board) extends Observable {
         return Some(error)
       }
     }
+  }
 }

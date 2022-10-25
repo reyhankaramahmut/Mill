@@ -46,12 +46,23 @@ Before starting please enter the name of the first player.""")
   ): Boolean = {
     val currentGameState = controller.gameState.get
     val currentBoard = currentGameState.game.board
+
     input match {
       // quit the game
       case "q" => true
       // start a new game
       case "n" => {
         controller.newGame
+        return false
+      }
+      // undo a turn
+      case "u" => {
+        controller.undoCommand.undoStep
+        return false
+      }
+      // redo a turn
+      case "r" => {
+        controller.undoCommand.redoStep
         return false
       }
       /*
