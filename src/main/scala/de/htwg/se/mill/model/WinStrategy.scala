@@ -7,7 +7,7 @@ object WinStrategy {
     if (Random.nextInt() % 2 == 0) classicStrategy
     else firstMillStrategy
   def classicStrategy(game: Game) =
-    game.board.fields.count(field =>
+    game.everyPlayerHasSetItsStones && game.board.fields.count(field =>
       field.color == game.players
         .find(p => !p.equals(game.currentPlayer))
         .get
