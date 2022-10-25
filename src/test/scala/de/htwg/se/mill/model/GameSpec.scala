@@ -9,15 +9,12 @@ class GameSpec extends AnyWordSpec with Matchers {
       val board = Board.withSize().get
       val melanie = Player("Melanie", "🔴")
       val players = Array(melanie, Player("Reyhan", "🔵"))
-      val game = Game(board, players)
+      val game = Game(board, players, melanie)
       "have the board" in {
         game.board should be(board)
       }
       "have the players" in {
         game.players should be(players)
-      }
-      "have the game state Setting" in {
-        game.state should be(GameState.Setting)
       }
       "not equal a game with a different board" in {
         game.equals(
@@ -37,11 +34,6 @@ class GameSpec extends AnyWordSpec with Matchers {
           game.copy(players = Array(melanie, Player("max", melanie.color)))
         ) should be(false)
       }
-      "not equal a game with a different game state" in {
-        game.equals(
-          game.copy(state = GameState.Moving)
-        ) should be(false)
-      }
       "not equal a different object" in {
         game.equals("") should be(false)
       }
@@ -55,7 +47,7 @@ class GameSpec extends AnyWordSpec with Matchers {
     val melanie = Player("Melanie", "🔴")
     val reyhan = Player("Reyhan", "🔵")
     val players = Array(melanie, reyhan)
-    val game = Game(board, players)
+    val game = Game(board, players, melanie)
     val firstField = Field(0, 0, 0)
     "is set a piece correctly" should {
       "be not valid if its horizontal location is outside of the board" in {
@@ -78,12 +70,12 @@ class GameSpec extends AnyWordSpec with Matchers {
               game.board.fields.indexOf(
                 firstField
               ),
-              new Field(firstField, reyhan.color)
+              firstField.copy(color = reyhan.color)
             ),
             game.board.size
           ),
           players,
-          game.state
+          melanie
         ).isValidSet(firstField) should be(false)
       }
       "be valid if its set on a correct field" in {
@@ -93,12 +85,12 @@ class GameSpec extends AnyWordSpec with Matchers {
               game.board.fields.indexOf(
                 firstField
               ),
-              new Field(firstField, reyhan.color)
+              firstField.copy(color = melanie.color)
             ),
             game.board.size
           ),
           players,
-          game.state
+          melanie
         ).isValidSet(Field(1, 0, 0)) should be(true)
       }
     }
@@ -124,19 +116,19 @@ class GameSpec extends AnyWordSpec with Matchers {
             game.board.fields.indexOf(
               firstField
             ),
-            new Field(firstField, melanie.color)
+            firstField.copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(1, 0, 0)
             ),
-            new Field(Field(1, 0, 0), melanie.color)
+            Field(1, 0, 0).copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(2, 0, 0)
             ),
-            new Field(Field(2, 0, 0), melanie.color)
+            Field(2, 0, 0).copy(color = melanie.color)
           ),
         game.board.size
       )
@@ -146,19 +138,19 @@ class GameSpec extends AnyWordSpec with Matchers {
             game.board.fields.indexOf(
               firstField
             ),
-            new Field(firstField, melanie.color)
+            firstField.copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(0, 1, 0)
             ),
-            new Field(Field(0, 1, 0), melanie.color)
+            Field(0, 1, 0).copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(0, 2, 0)
             ),
-            new Field(Field(0, 2, 0), melanie.color)
+            Field(0, 2, 0).copy(color = melanie.color)
           ),
         game.board.size
       )
@@ -168,69 +160,68 @@ class GameSpec extends AnyWordSpec with Matchers {
             game.board.fields.indexOf(
               Field(1, 0, 0)
             ),
-            new Field(Field(1, 0, 0), melanie.color)
+            Field(1, 0, 0).copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(1, 0, 1)
             ),
-            new Field(Field(1, 0, 1), melanie.color)
+            Field(1, 0, 1).copy(color = melanie.color)
           )
           .updated(
             game.board.fields.indexOf(
               Field(1, 0, 2)
             ),
-            new Field(Field(1, 0, 2), melanie.color)
+            Field(1, 0, 2).copy(color = melanie.color)
           ),
         game.board.size
       )
 
       "be invalid if there is no mill" in {
         game.isMill(
-          firstField.copy(color = melanie.color),
-          game.board
+          firstField.copy(color = melanie.color)
         ) should be(false)
       }
       "be invalid if there is a mill but the target field is wrong" in {
-        new Game(boardWithMillOnFirstRow, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstRow)
           .isMill(
-            Field(1, 0, 1, melanie.color),
-            boardWithMillOnFirstRow
+            Field(1, 0, 1, melanie.color)
           ) should be(false)
       }
       "be valid if there is a mill on a row and its a middle point" in {
-        new Game(boardWithMillOnFirstRow, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstRow)
           .isMill(
-            Field(1, 0, 0, melanie.color),
-            boardWithMillOnFirstRow
+            Field(1, 0, 0, melanie.color)
           ) should be(true)
       }
       "be valid if there is a mill on a column and its a middle point" in {
-        new Game(boardWithMillOnFirstColumn, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstColumn)
           .isMill(
-            Field(0, 1, 0, melanie.color),
-            boardWithMillOnFirstColumn
+            Field(0, 1, 0, melanie.color)
           ) should be(true)
       }
       "be valid if there is a mill on a row" in {
-        new Game(boardWithMillOnFirstRow, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstRow)
           .isMill(
-            Field(0, 0, 0, melanie.color),
-            boardWithMillOnFirstRow
+            Field(0, 0, 0, melanie.color)
           ) should be(true)
       }
       "be valid if there is a mill on a column" in {
-        new Game(boardWithMillOnFirstColumn, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstColumn)
           .isMill(
-            Field(0, 0, 0, melanie.color),
-            boardWithMillOnFirstColumn
+            Field(0, 0, 0, melanie.color)
           ) should be(true)
       }
       "be valid if there is a mill on a ring" in {
-        new Game(boardWithMillOnFirstRing, game.players, game.state)
+        game
+          .copy(board = boardWithMillOnFirstRing)
           .isMill(
-            Field(1, 0, 1, melanie.color),
-            boardWithMillOnFirstRing
+            Field(1, 0, 1, melanie.color)
           ) should be(true)
       }
     }
@@ -251,305 +242,6 @@ class GameSpec extends AnyWordSpec with Matchers {
             Math.pow(game.board.size, 2).toInt * game.players.length
           )
           .everyPlayerHasSetItsStones should be(true)
-      }
-    }
-    "is set a piece to a field" should {
-      "be invalid if game state is not Setting" in {
-        game
-          .copy(state = GameState.Moving)
-          .setPiece(melanie, firstField)
-          .isFailure should be(true)
-      }
-      "be invalid if the field to be set is already in use" in {
-        game
-          .copy(board =
-            Board(
-              game.board.fields.updated(
-                game.board.fields.indexOf(firstField),
-                firstField.copy(color = melanie.color)
-              ),
-              game.board.size
-            )
-          )
-          .setPiece(melanie, firstField)
-          .isFailure should be(true)
-      }
-      "be valid with a new game state of Removing" in {
-        val boardWithMillOnFirstRow = Board(
-          game.board.fields
-            .updated(
-              game.board.fields.indexOf(
-                Field(1, 0, 0)
-              ),
-              new Field(Field(1, 0, 0), melanie.color)
-            )
-            .updated(
-              game.board.fields.indexOf(
-                Field(2, 0, 0)
-              ),
-              new Field(Field(2, 0, 0), melanie.color)
-            ),
-          game.board.size
-        )
-        val gameAfterTurn = game
-          .copy(board = boardWithMillOnFirstRow)
-          .setPiece(melanie, firstField)
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Removing)
-      }
-      "be valid with a new game state of Moving" in {
-        val gameAfterTurn = game
-          .copy(setStones =
-            Math.pow(game.board.size, 2).toInt * game.players.length - 1
-          )
-          .setPiece(
-            melanie,
-            firstField
-          )
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Moving)
-      }
-      "be valid with the same game state of Setting" in {
-        val gameAfterTurn = game.setPiece(melanie, firstField)
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Setting)
-      }
-    }
-    "a piece is moved to a field" should {
-      "fail if the game state is Setting" in {
-        game
-          .movePiece(melanie, firstField, Field(1, 0, 0))
-          .isFailure should be(true)
-      }
-      "fail if the piece moved was not the players in turn" in {
-        game
-          .copy(state = GameState.Moving)
-          .movePiece(
-            melanie,
-            firstField.copy(color = reyhan.color),
-            Field(1, 0, 0)
-          )
-          .isFailure should be(true)
-      }
-      "fail if the game state is Moving but the move is not valid" in {
-        game
-          .copy(state = GameState.Moving)
-          .movePiece(
-            melanie,
-            firstField.copy(color = melanie.color),
-            Field(2, 0, 0)
-          )
-          .isFailure should be(true)
-      }
-      "fail if the game state is Flying but setting the piece is not valid" in {
-        game
-          .copy(state = GameState.Flying)
-          .movePiece(
-            melanie,
-            firstField.copy(color = melanie.color),
-            Field(-1, 0, 0)
-          )
-          .isFailure should be(true)
-      }
-      "succeed with a state of Removing if it is a mill" in {
-        val boardWithMillOnFirstRow = Board(
-          game.board.fields
-            .updated(
-              game.board.fields.indexOf(
-                Field(1, 0, 0)
-              ),
-              new Field(Field(1, 0, 0), melanie.color)
-            )
-            .updated(
-              game.board.fields.indexOf(
-                Field(2, 0, 0)
-              ),
-              new Field(Field(2, 0, 0), melanie.color)
-            ),
-          game.board.size
-        )
-        val gameAfterTurn = game
-          .copy(board = boardWithMillOnFirstRow, state = GameState.Moving)
-          .movePiece(melanie, Field(0, 1, 0, melanie.color), firstField)
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Removing)
-      }
-      "succeed with a state of Moving if the piece is moved correctly" in {
-        val gameAfterTurn =
-          game
-            .copy(state = GameState.Moving)
-            .movePiece(
-              melanie,
-              firstField.copy(color = melanie.color),
-              Field(1, 0, 0)
-            )
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Moving)
-      }
-    }
-    "a piece is removed from a field" should {
-      "fail if the game state is not Removing" in {
-        game.removePiece(melanie, firstField).isFailure should be(true)
-      }
-      "fail if the removed field has the same color as the player in turn" in {
-        game
-          .copy(
-            board = Board(
-              game.board.fields.updated(
-                game.board.fields.indexOf(firstField),
-                firstField.copy(color = melanie.color)
-              ),
-              game.board.size
-            ),
-            state = GameState.Removing
-          )
-          .removePiece(melanie, firstField.copy(color = melanie.color))
-          .isFailure should be(true)
-      }
-      "fail if the removed field is unset" in {
-        game
-          .copy(state = GameState.Removing)
-          .removePiece(melanie, firstField)
-          .isFailure should be(true)
-      }
-      "fail if the field is part of a mill" in {
-        val boardWithMillOnFirstRow = Board(
-          game.board.fields
-            .updated(
-              game.board.fields.indexOf(firstField),
-              firstField.copy(color = reyhan.color)
-            )
-            .updated(
-              game.board.fields.indexOf(
-                Field(1, 0, 0)
-              ),
-              new Field(Field(1, 0, 0), reyhan.color)
-            )
-            .updated(
-              game.board.fields.indexOf(
-                Field(2, 0, 0)
-              ),
-              new Field(Field(2, 0, 0), reyhan.color)
-            ),
-          game.board.size
-        )
-        val gameAfterTurn = game
-          .copy(board = boardWithMillOnFirstRow, state = GameState.Removing)
-          .removePiece(melanie, firstField.copy(color = reyhan.color))
-          .isFailure should be(true)
-      }
-      "succeed with a state of Moving if every player has set its stones " +
-        "and the other players pieces are more than the board size" in {
-          val gameAfterTurn = game
-            .copy(
-              board = Board(
-                game.board.fields
-                  .updated(
-                    game.board.fields.indexOf(firstField),
-                    firstField.copy(color = melanie.color)
-                  )
-                  .updated(
-                    game.board.fields.indexOf(Field(1, 0, 0)),
-                    Field(1, 0, 0, reyhan.color)
-                  )
-                  .updated(
-                    game.board.fields.indexOf(Field(2, 0, 0)),
-                    Field(2, 0, 0, reyhan.color)
-                  )
-                  .updated(
-                    game.board.fields.indexOf(Field(0, 1, 0)),
-                    Field(0, 1, 0, reyhan.color)
-                  )
-                  .updated(
-                    game.board.fields.indexOf(Field(0, 2, 0)),
-                    Field(0, 2, 0, reyhan.color)
-                  ),
-                game.board.size
-              ),
-              state = GameState.Removing,
-              setStones =
-                Math.pow(game.board.size, 2).toInt * game.players.length
-            )
-            .removePiece(melanie, firstField.copy(color = reyhan.color))
-
-          gameAfterTurn.isSuccess should be(true)
-          gameAfterTurn.get.state should be(GameState.Moving)
-        }
-      "succeed with a state of Won if the other players pieces are less than the board size" in {
-        val gameAfterTurn = game
-          .copy(
-            Board(
-              game.board.fields
-                .updated(
-                  game.board.fields.indexOf(firstField),
-                  firstField.copy(color = melanie.color)
-                )
-                .updated(
-                  game.board.fields.indexOf(Field(1, 0, 0)),
-                  Field(1, 0, 0, reyhan.color)
-                )
-                .updated(
-                  game.board.fields.indexOf(Field(2, 0, 0)),
-                  Field(2, 0, 0, reyhan.color)
-                ),
-              game.board.size
-            ),
-            state = GameState.Removing,
-            setStones = Math.pow(game.board.size, 2).toInt * game.players.length
-          )
-          .removePiece(melanie, firstField.copy(color = reyhan.color))
-
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Won)
-      }
-      "succeed with a state of Flying if the other players pieces are equal to the board size" in {
-        val gameAfterTurn = game
-          .copy(
-            board = Board(
-              game.board.fields
-                .updated(
-                  game.board.fields.indexOf(firstField),
-                  firstField.copy(color = melanie.color)
-                )
-                .updated(
-                  game.board.fields.indexOf(Field(1, 0, 0)),
-                  Field(1, 0, 0, reyhan.color)
-                )
-                .updated(
-                  game.board.fields.indexOf(Field(2, 0, 0)),
-                  Field(2, 0, 0, reyhan.color)
-                )
-                .updated(
-                  game.board.fields.indexOf(Field(0, 1, 0)),
-                  Field(0, 1, 0, reyhan.color)
-                ),
-              game.board.size
-            ),
-            state = GameState.Removing,
-            setStones = Math.pow(game.board.size, 2).toInt * game.players.length
-          )
-          .removePiece(melanie, firstField.copy(color = reyhan.color))
-
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Flying)
-      }
-      "succeed with a state of Setting if the piece is removed correctly" in {
-        val gameAfterTurn = game
-          .copy(
-            board = Board(
-              game.board.fields
-                .updated(
-                  game.board.fields.indexOf(firstField),
-                  firstField.copy(color = melanie.color)
-                ),
-              game.board.size
-            ),
-            state = GameState.Removing
-          )
-          .removePiece(melanie, firstField.copy(color = reyhan.color))
-
-        gameAfterTurn.isSuccess should be(true)
-        gameAfterTurn.get.state should be(GameState.Setting)
       }
     }
   }
