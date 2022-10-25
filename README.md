@@ -1,4 +1,5 @@
 [![Build Status](https://app.travis-ci.com/melaniegalip/Mill.svg?branch=main)](https://app.travis-ci.com/melaniegalip/Mill)
+[![Coverage Status](https://coveralls.io/repos/github/melaniegalip/Mill/badge.svg?branch=main)](https://coveralls.io/github/melaniegalip/Mill?branch=main)
 
 # Mill
 ## sbt project compiled with Scala 3
