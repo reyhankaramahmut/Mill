@@ -1,7 +1,5 @@
 package de.htwg.se.mill.model
 
-package de.htwg.se.muehle.model
-
 import scala.util.Random
 
 object WinStrategy {

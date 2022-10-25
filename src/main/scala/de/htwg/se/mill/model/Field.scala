@@ -1,9 +1,6 @@
 package de.htwg.se.mill.model
 
 case class Field(x: Int, y: Int, ring: Int, color: String = "⚫") {
-  def this(field: Field, color: String) =
-    this(field.x, field.y, field.ring, color)
-
   override def toString: String = color
   override def equals(field: Any): Boolean = field match {
     case f: Field =>

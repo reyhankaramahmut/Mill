@@ -3,13 +3,7 @@ package de.htwg.se.mill.aview
 import scala.io.StdIn.readLine
 import de.htwg.se.mill.util.Observer
 import de.htwg.se.mill.controller.Controller
-
-enum TUIStatusCode {
-  case QUIT, NEW_GAME, WRONG_SETTING_OR_REMOVING_COMMAND,
-    WRONG_MOVING_OR_FLYING_COMMAND,
-    WRONG_FIRST_FIELD, WRONG_SECOND_FIELD, MOVING_PIECE_FAILED,
-    SETTING_PIECE_FAILED, REMOVING_PIECE_FAILED, SUCCESSFUL
-}
+import de.htwg.se.mill.util.Messages
 
 final case class TUI(controller: Controller) extends Observer {
   controller.add(this)
@@ -35,118 +29,91 @@ Before starting please enter the name of the first player.""")
   }
   override def update(message: Option[String]) = {
     println(
-      if (message.isDefined) message else controller.currentGame.get.board
+      if (message.isDefined) message.get
+      else controller.gameState.get.game.board
     )
   }
   private def inputLoop: Unit = {
     val input = readLine(
-      s"${controller.currentPlayer.get}'s turn(${controller.currentGame.get.state}): "
+      s"${controller.gameState.get.game.currentPlayer}'s turn(${controller.currentGameState}): "
     )
-    if (onInput(input) == TUIStatusCode.QUIT) return
+    if (onInput(input)) return
     inputLoop
   }
 
   def onInput(
       input: String
-  ): TUIStatusCode = {
-    val currentGame = controller.currentGame.get
-    val currentPlayer = controller.currentPlayer.get
+  ): Boolean = {
+    val currentGameState = controller.gameState.get
+    val currentBoard = currentGameState.game.board
     input match {
       // quit the game
-      case "q" => TUIStatusCode.QUIT
+      case "q" => true
       // start a new game
       case "n" => {
         controller.newGame
-        return TUIStatusCode.NEW_GAME
+        return false
       }
       /*
         play the game
         input notation: (columnrowring) e.g. 111 121 or 111
        */
       case _ => {
-        val commandPattern = s"[1-${currentGame.board.size}]{3}"
+        val commandPattern = s"[1-${currentBoard.size}]{3}"
 
         if (
-          (currentGame.isSetting || currentGame.isRemoving) && !input
+          (controller.isSetting || controller.isRemoving) && !input
             .matches(commandPattern)
         ) {
-          update(
-            Some(
-              "Your command is wrong. Please check it again. " +
-                "Should be something like 111 for removing or setting pieces."
-            )
-          )
-          return TUIStatusCode.WRONG_SETTING_OR_REMOVING_COMMAND
+          update(Some(Messages.wrongSettingOrRemovingCommandMessage))
+          return false
         }
         if (
-          (currentGame.isMoving || currentGame.isFlying) && !input
+          (controller.isMovingOrFlying) && !input
             .matches(s"$commandPattern $commandPattern")
         ) {
-          update(
-            Some(
-              "Your command is wrong. Please check it again. " +
-                "Should be something like 111 121 for moving pieces."
-            )
-          )
-          return TUIStatusCode.WRONG_MOVING_OR_FLYING_COMMAND
+          update(Some(Messages.wrongMovingOrFlyingCommandMessage))
+          return false
         }
 
         val fields = input.split(" ").map(field => field.split(""))
-        val field = currentGame.board.getField(
+        val field = currentBoard.getField(
           fields(0)(0).toInt - 1,
           fields(0)(1).toInt - 1,
           fields(0)(2).toInt - 1
         )
         if (field.isEmpty) {
-          update(
-            Some(
-              "Your command is wrong. Please check it again. " +
-                "The field position provided is invalid."
-            )
-          )
-          return TUIStatusCode.WRONG_FIRST_FIELD
+          update(Some(Messages.wrongFieldPositionMessage))
+          return false
         }
         if (fields.length > 1) {
-          val to = currentGame.board.getField(
+          val to = currentBoard.getField(
             fields(1)(0).toInt - 1,
             fields(1)(1).toInt - 1,
             fields(1)(2).toInt - 1
           )
           if (to.isEmpty) {
-            update(
-              Some(
-                "Your command is wrong. Please check it again. " +
-                  "The field position where the piece should be moved to is invalid."
-              )
-            )
-            return TUIStatusCode.WRONG_SECOND_FIELD
+            update(Some(Messages.wrongTargetFieldPositionMessage))
+            return false
           }
           if (controller.movePiece(field.get, to.get).isDefined) {
-            return TUIStatusCode.MOVING_PIECE_FAILED
+            return false
           }
         } else {
           if (
-            currentGame.isSetting && controller.setPiece(field.get).isDefined
+            controller.isSetting && controller.setPiece(field.get).isDefined
           ) {
-            return TUIStatusCode.SETTING_PIECE_FAILED
+            return false
           }
           if (
-            currentGame.isRemoving && controller
+            controller.isRemoving && controller
               .removePiece(field.get)
               .isDefined
           ) {
-            return TUIStatusCode.REMOVING_PIECE_FAILED
+            return false
           }
         }
-        if (controller.currentGame.get.isWon) {
-          update(
-            Some(
-              s"Congratulations! $currentPlayer has won the game!\nStarting new game."
-            )
-          )
-          controller.newGame
-        }
-        return TUIStatusCode.SUCCESSFUL
+        return false
       }
     }
   }

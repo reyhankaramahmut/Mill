@@ -16,15 +16,12 @@ import scala.util.{Try, Success, Failure}
 case class Game(
     board: Board,
     players: Array[Player],
-    state: GameState = GameState.Setting,
+    currentPlayer: Player,
     setStones: Int = 0
 ) {
   override def equals(game: Any): Boolean = game match {
     case g: Game =>
-      g.board.equals(board) && g.players.sameElements(players) && g.state
-        .equals(
-          state
-        )
+      g.board.equals(board) && g.players.sameElements(players)
     case _ => false
   }
   def isValidSet(field: Field): Boolean =
@@ -39,170 +36,28 @@ case class Game(
     (Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
       ^ Math.abs(from.ring - to.ring) == 1)
 
-  def isMill(to: Field, boardAfterTurn: Board): Boolean = {
-    val possibleMillOnRow = boardAfterTurn.fields
+  def isMill(to: Field): Boolean = {
+    val possibleMillOnRow = board.fields
       .count(field =>
-        field.y == to.y && field.ring == to.ring && field.color == to.color
-      ) == boardAfterTurn.size
-    val possibleMillOnColumn = boardAfterTurn.fields
+        field.y == to.y && field.ring == to.ring && field.color == currentPlayer.color
+      ) == board.size
+    val possibleMillOnColumn = board.fields
       .count(field =>
-        field.x == to.x && field.ring == to.ring && field.color == to.color
-      ) == boardAfterTurn.size
+        field.x == to.x && field.ring == to.ring && field.color == currentPlayer.color
+      ) == board.size
     val isMiddlePoint =
-      to.x == Math.floor(boardAfterTurn.size / 2) || to.y == Math.floor(
-        boardAfterTurn.size / 2
+      to.x == Math.floor(board.size / 2) || to.y == Math.floor(
+        board.size / 2
       )
     if (isMiddlePoint) {
-      val possibleMillOnRing = boardAfterTurn.fields
+      val possibleMillOnRing = board.fields
         .count(field =>
-          field.y == to.y && field.x == to.x && field.color == to.color
-        ) == boardAfterTurn.size
+          field.y == to.y && field.x == to.x && field.color == currentPlayer.color
+        ) == board.size
       return possibleMillOnRow || possibleMillOnColumn || possibleMillOnRing
     }
     possibleMillOnColumn || possibleMillOnRow
   }
   def everyPlayerHasSetItsStones =
     setStones == Math.pow(board.size, 2).toInt * players.length
-  def isSetting = state == GameState.Setting
-  def isMoving = state == GameState.Moving
-  def isFlying = state == GameState.Flying
-  def isRemoving = state == GameState.Removing
-  def isWon = state == GameState.Won
-  def setPiece(player: Player, field: Field): Try[Game] = {
-    if (!isSetting)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not set. All pieces are already set."
-        )
-      )
-
-    if (!isValidSet(field))
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not set. Please use a valid field that is not already in use."
-        )
-      )
-    val newField = new Field(field, player.color)
-    val playedTurnBoard = Board(
-      board.fields.updated(
-        board.fields.indexOf(field),
-        newField
-      ),
-      board.size
-    )
-    val playedTurnState =
-      if (isMill(newField, playedTurnBoard)) GameState.Removing
-      else if (copy(setStones = setStones + 1).everyPlayerHasSetItsStones)
-        GameState.Moving
-      else state
-    Success(
-      copy(
-        board = playedTurnBoard,
-        state = playedTurnState,
-        setStones = setStones + 1
-      )
-    )
-  }
-
-  def movePiece(player: Player, from: Field, to: Field): Try[Game] = {
-    if (!isMoving && !isFlying)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not moved. Please provide a valid input for moving or flying a piece."
-        )
-      )
-
-    if (from.color != player.color)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not moved. You can only move your own pieces."
-        )
-      )
-
-    if (isMoving) {
-      if (!isValidMove(from, to))
-        return Failure(
-          IllegalArgumentException(
-            "The piece was not moved. Please use a valid field that is not already in use."
-          )
-        )
-    } else {
-      if (!isValidSet(to))
-        return Failure(
-          IllegalArgumentException(
-            "The piece was not moved. Please use a valid field that is not already in use."
-          )
-        )
-    }
-    val newField = new Field(to, player.color)
-
-    val playedTurnBoard = Board(
-      board.fields
-        .updated(
-          board.fields.indexOf(from),
-          new Field(from, newField.unsetFieldColor)
-        )
-        .updated(
-          board.fields.indexOf(to),
-          newField
-        ),
-      board.size
-    )
-    val playedTurnState =
-      if (isMill(newField, playedTurnBoard)) GameState.Removing
-      else state
-    Success(copy(board = playedTurnBoard, state = playedTurnState))
-  }
-
-  def removePiece(player: Player, field: Field): Try[Game] = {
-    if (!isRemoving)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not removed. Please provide a valid input for removing a piece."
-        )
-      )
-
-    if (field.color == player.color)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not removed. You cannot remove your own pieces."
-        )
-      )
-
-    if (field.color == field.unsetFieldColor)
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not removed. You cannot remove unset fields."
-        )
-      )
-
-    if (isMill(field, board))
-      return Failure(
-        IllegalArgumentException(
-          "The piece was not removed. You cannot remove pieces on a mill."
-        )
-      )
-
-    val playedTurnBoard = Board(
-      board.fields
-        .updated(
-          board.fields.indexOf(field),
-          new Field(field, field.unsetFieldColor)
-        ),
-      board.size
-    )
-    var playedTurnState = GameState.Setting
-    val otherPlayersPieces = playedTurnBoard.fields.count(field =>
-      field.color == players.find(p => !p.equals(player)).get.color
-    )
-    if (everyPlayerHasSetItsStones) {
-      playedTurnState = GameState.Moving
-      if (otherPlayersPieces < board.size) {
-        playedTurnState = GameState.Won
-      } else if (otherPlayersPieces == board.size) {
-        playedTurnState = GameState.Flying
-      }
-    }
-    Success(copy(board = playedTurnBoard, state = playedTurnState))
-  }
 }
