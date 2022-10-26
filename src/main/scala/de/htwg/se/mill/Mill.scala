@@ -7,7 +7,7 @@ import de.htwg.se.mill.model.Board
 import de.htwg.se.mill.aview.TUI
 import de.htwg.se.mill.model.GameState
 import scala.util.{Success, Failure}
-import util.control.Breaks._
+import scala.util.control.Breaks._
 
 object Mill {
   def main(args: Array[String]): Unit = {
