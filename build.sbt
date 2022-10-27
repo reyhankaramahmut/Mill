@@ -20,7 +20,7 @@ lazy val root = project
     ),
     jacocoExcludes := Seq(
       "de.htwg.se.mill.Mill*",
-      "de.htwg.se.mill.aview*"
+      "de.htwg.se.mill.util*"
     ),
     jacocoCoverallsServiceName := "github-actions",
     jacocoCoverallsBranch := sys.env.get("CI_BRANCH"),

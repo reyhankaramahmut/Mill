@@ -57,12 +57,12 @@ Before starting please enter the name of the first player.""")
       }
       // undo a turn
       case "u" => {
-        controller.undoCommand.undoStep
+        controller.undo
         return false
       }
       // redo a turn
       case "r" => {
-        controller.undoCommand.redoStep
+        controller.redo
         return false
       }
       /*
