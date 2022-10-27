@@ -7,3 +7,4 @@
 
     after_success:
       - sbt jacocoCoveralls
+    coveralls: true
