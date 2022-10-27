@@ -54,15 +54,15 @@ class BoardSpec extends AnyWordSpec with Matchers {
       }
       "have a nine mens morris string representation" in {
         board.toString should be("""
-⚫――――――――――――⚫――――――――――――⚫
-│   ⚫――――――――⚫――――――――⚫   │
-│   │   ⚫――――⚫――――⚫   │   │
-│   │   │            │   │   │
-⚫――⚫――⚫         ⚫――⚫――⚫
-│   │   │            │   │   │
-│   │   ⚫――――⚫――――⚫   │   │
-│   ⚫――――――――⚫――――――――⚫   │
-⚫――――――――――――⚫――――――――――――⚫""")
+    ⚫――――――――――――⚫――――――――――――⚫
+    │   ⚫――――――――⚫――――――――⚫   │
+    │   │   ⚫――――⚫――――⚫   │   │
+    │   │   │            │   │   │
+    ⚫――⚫――⚫         ⚫――⚫――⚫
+    │   │   │            │   │   │
+    │   │   ⚫――――⚫――――⚫   │   │
+    │   ⚫――――――――⚫――――――――⚫   │
+    ⚫――――――――――――⚫――――――――――――⚫""")
       }
       "have a fields dump with correct fields representation" in {
         board.fieldsDump should be(
