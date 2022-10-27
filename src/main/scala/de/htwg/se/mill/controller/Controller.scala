@@ -20,8 +20,12 @@ class Controller(private val board: Board) extends Observable {
   private val twoPlayers = new Array[Player](2)
   private val winStrategy = WinStrategy.classicStrategy
   private var previousTurn: Option[Try[GameState]] = None
-  var undoCommand = new UndoCommand()
+
+  private var undoCommand = new UndoCommand()
   var gameState: Option[GameState] = None
+
+  def undo = undoCommand.undoStep
+  def redo = undoCommand.redoStep
 
   def addFirstPlayer(playerName: String, playerColor: String = "🔴") = {
     twoPlayers(0) = Player(playerName, playerColor)
@@ -51,7 +55,7 @@ class Controller(private val board: Board) extends Observable {
   }
 
   // Memento
-  class Snapshot(
+  private class Snapshot(
       val controller: Controller,
       val previousTurn: Option[Try[GameState]]
   ) {
@@ -84,7 +88,7 @@ class Controller(private val board: Board) extends Observable {
   }
 
   // Command
-  class UndoCommand {
+  private class UndoCommand {
     private var undoStack: List[Snapshot] = Nil
     private var redoStack: List[Snapshot] = Nil
     def backup(snapshot: Snapshot): Unit = {
