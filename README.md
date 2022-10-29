@@ -6,10 +6,6 @@ Mill is one of the oldest board games and known in Europe by different names: Ni
 
 ![Alt text](/posts/path/to/mill.jpg "Optional title")
 
-## How to Play
-
-The object is to try to form “mills” by making a line of three of your pieces, horizontally or vertically. When a mill is formed, the player who made the row of three is allowed to remove one of their opponent’s pieces from the game. You win by reducing your opponent’s pieces to just two.
-
 ## Rules 
 There are 2 players in the game. Each player has 9 pieces of a given color. Each player tries to form a “mill”, which is 3 of their pieces in one row connected by the line. To form a mill, the pieces can be placed either horizontally or vertically, but not at at a 90 degree angle, and they must be connected by lines. The game begins when all pieces are off the board. Players decide who goes first either by agreement or by lot, such as toss of a coin. 
 There are 3 phases to the game:
