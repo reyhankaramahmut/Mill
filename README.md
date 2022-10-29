@@ -4,7 +4,8 @@
 # The Mill - Classic Board Game
 Mill is one of the oldest board games and known in Europe by different names: Nine Men Morris, Mühle, Molenspel and Merrelles.
 
-![Alt text](/posts/path/to/mill.jpg "Optional title")
+<img src="https://i.etsystatic.com/10392661/r/il/3bd19c/3379188715/il_1588xN.3379188715_gife.jpg" height="750" width="750" >
+
 
 ## Rules 
 There are 2 players in the game. Each player has 9 pieces of a given color. Each player tries to form a “mill”, which is 3 of their pieces in one row connected by the line. To form a mill, the pieces can be placed either horizontally or vertically, but not at at a 90 degree angle, and they must be connected by lines. The game begins when all pieces are off the board. Players decide who goes first either by agreement or by lot, such as toss of a coin. 
