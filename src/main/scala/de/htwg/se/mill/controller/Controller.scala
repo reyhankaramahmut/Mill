@@ -1,5 +1,6 @@
 package de.htwg.se.mill.controller
 
+import scalafx.application.Platform
 import de.htwg.se.mill.model.Game
 import de.htwg.se.mill.model.Board
 import de.htwg.se.mill.model.Field
@@ -15,6 +16,7 @@ import de.htwg.se.mill.model.{
   MovingState,
   FlyingState
 }
+import de.htwg.se.mill.util.Event
 
 class Controller(private val board: Board) extends Observable {
   private val twoPlayers = new Array[Player](2)
@@ -42,8 +44,13 @@ class Controller(private val board: Board) extends Observable {
       )
     )
     previousTurn = Some(Success(gameState.get))
-    notifyObservers(None)
+    Platform.runLater {
+      notifyObservers(None, Event.PLAY)
+    }
+
   }
+
+  def quit = notifyObservers(None, Event.QUIT)
 
   private def createSnapshot: Snapshot = {
     val snapshot = new Snapshot(this, previousTurn)
@@ -73,11 +80,17 @@ class Controller(private val board: Board) extends Observable {
               controller.gameState = Some(state)
             }
           }
-          controller.notifyObservers(None)
+          Platform.runLater {
+            controller.notifyObservers(None, Event.PLAY)
+          }
+
           return None
         }
         case Failure(error) => {
-          controller.notifyObservers(Some(error.getMessage()))
+          Platform.runLater {
+            controller.notifyObservers(Some(error.getMessage()), Event.PLAY)
+          }
+
           return Some(error)
         }
       }
@@ -198,19 +211,29 @@ class Controller(private val board: Board) extends Observable {
         }
 
         if (winStrategy(currentGame.get)) {
-          notifyObservers(
-            Some(
-              s"Congratulations! ${currentGame.get.currentPlayer} has won the game!\nStarting new game."
+          Platform.runLater {
+            notifyObservers(
+              Some(
+                s"Congratulations! ${currentGame.get.currentPlayer} has won the game!\nStarting new game."
+              ),
+              Event.PLAY
             )
-          )
+          }
+
           newGame
         } else {
-          notifyObservers(None)
+          Platform.runLater {
+            notifyObservers(None, Event.PLAY)
+          }
+
         }
         return None
       }
       case Failure(error) => {
-        notifyObservers(Some(error.getMessage()))
+        Platform.runLater {
+          notifyObservers(Some(error.getMessage()), Event.PLAY)
+        }
+
         return Some(error)
       }
     }
