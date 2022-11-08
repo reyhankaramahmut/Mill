@@ -29,15 +29,18 @@ final case class Controller(private val board: Board) extends Observable {
     notifyObservers(None)
   }
 
-  def setPiece(field: Field): Option[Throwable] = onTurn(
-    currentGame.get.setPiece(currentPlayer.get, field)
-  )
-  def movePiece(from: Field, to: Field): Option[Throwable] = onTurn(
-    currentGame.get.movePiece(currentPlayer.get, from, to)
-  )
-  def removePiece(field: Field): Option[Throwable] = onTurn(
-    currentGame.get.removePiece(currentPlayer.get, field)
-  )
+  def setPiece(field: Field): Option[Throwable] =
+    onTurn(
+      currentGame.get.setPiece(currentPlayer.get, field)
+    )
+  def movePiece(from: Field, to: Field): Option[Throwable] =
+    onTurn(
+      currentGame.get.movePiece(currentPlayer.get, from, to)
+    )
+  def removePiece(field: Field): Option[Throwable] =
+    onTurn(
+      currentGame.get.removePiece(currentPlayer.get, field)
+    )
 
   private def onTurn(turn: Try[Game]): Option[Throwable] =
     turn match {
