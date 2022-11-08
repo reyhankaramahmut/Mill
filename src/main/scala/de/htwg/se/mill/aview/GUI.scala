@@ -16,7 +16,7 @@ class GUI(val controller: Controller) extends JFXApp3 with Observer {
     case Event.PLAY => this.start()
   override def start(): Unit = {
     stage = new JFXApp3.PrimaryStage {
-      title = "TicTacToe"
+      title = "Mill"
       scene = new Scene(600, 450) {
         fill = Color.LIGHTGREEN
         content = new Rectangle {
