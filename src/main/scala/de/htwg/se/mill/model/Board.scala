@@ -8,9 +8,6 @@ trait Board {
   def size: Int
   def fieldsDump: String
   def getField(x: Int, y: Int, ring: Int): Option[Field]
-  def upperSection: Map[Int, List[Field]]
-  def middleSection: (List[Field], List[Field])
-  def lowerSection: Map[Int, List[Field]]
 }
 
 object Board {
@@ -36,19 +33,20 @@ object Board {
       case _ => false
     }
 
-    override def lowerSection: Map[Int, List[Field]] = ListMap(
+    def lowerSection: Map[Int, List[Field]] = ListMap(
       fields
         .filter(field => field.y == (size - 1))
         .groupBy(_.ring)
         .toSeq
         .sortWith(_._1 > _._1): _*
     )
-    override def middleSection: (List[Field], List[Field]) = {
+    def middleSection: (List[Field], List[Field]) = {
       val section = fields
         .filter(field => field.y > 0 && field.y < (size - 1))
+        .sortBy(_.x)
       section.splitAt(section.length / 2)
     }
-    override def upperSection: Map[Int, List[Field]] = fields
+    def upperSection: Map[Int, List[Field]] = fields
       .filter(field => field.y == 0)
       .groupBy(_.ring)
 
@@ -70,12 +68,16 @@ object Board {
           .mkString(endOfLine)
         + endOfLine
         + dividerRow
-        + middleSection(0).mkString(
-          bar(barWidth / 2)
-        ) + space() * size
-        + middleSection(1).mkString(
-          bar(barWidth / 2)
-        ) + endOfLine
+        + middleSection(0)
+          .sortWith(_.ring < _.ring)
+          .mkString(
+            bar(barWidth / 2)
+          ) + space() * size
+        + middleSection(1)
+          .sortWith(_.ring > _.ring)
+          .mkString(
+            bar(barWidth / 2)
+          ) + endOfLine
         + dividerRow
         + lowerSection
           .map(formattedFieldsByRing)

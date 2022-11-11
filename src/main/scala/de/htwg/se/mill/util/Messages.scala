@@ -2,31 +2,31 @@ package de.htwg.se.mill.util
 
 object Messages {
   // GameState
-  val pieceNotMovedMessage = "The piece was not moved."
-  val pieceNotSetMessage = "The piece was not set."
-  val pieceNotRemovedMessage = "The piece was not removed."
+  val pieceNotMovedMessage = "The piece was not moved.\n"
+  val pieceNotSetMessage = "The piece was not set.\n"
+  val pieceNotRemovedMessage = "The piece was not removed.\n"
   val isNotSettingStateMessage =
-    s"$pieceNotSetMessage All pieces are already set."
+    s"${pieceNotSetMessage} All pieces are already set."
   val isNotMovingStateMessage =
-    s"$pieceNotMovedMessage Please provide a valid input for moving or flying a piece."
+    s"${pieceNotMovedMessage} Please provide a valid input for moving or flying a piece."
   val isNotFlyingStateMessage =
-    s"$pieceNotMovedMessage Please provide a valid input for moving or flying a piece."
+    s"${pieceNotMovedMessage} Please provide a valid input for moving or flying a piece."
   val isNotRemovingStateMessage =
-    s"$pieceNotRemovedMessage Please provide a valid input for removing a piece."
+    s"${pieceNotRemovedMessage} Please provide a valid input for removing a piece."
   val movedOtherPieceMessage =
-    s"$pieceNotMovedMessage You can only move your own pieces."
+    s"${pieceNotMovedMessage} You can only move your own pieces."
   val invalidMoveFieldAlreadyInUseMessage =
-    s"$pieceNotMovedMessage Please use a valid field that is not already in use."
+    s"${pieceNotMovedMessage} Please use a valid field that is not already in use."
   val invalidSetFieldAlreadyInUseMessage =
-    s"$pieceNotSetMessage Please use a valid field that is not already in use."
+    s"${pieceNotSetMessage}Please use a valid field that is not already in use."
   val invalidRemoveFieldOwnPieceMessage =
-    s"$pieceNotRemovedMessage You cannot remove your own pieces."
+    s"${pieceNotRemovedMessage}You cannot remove your own pieces."
   val invalidRemoveFieldUnsetFieldMessage =
-    s"$pieceNotRemovedMessage You cannot remove unset fields."
+    s"${pieceNotRemovedMessage}You cannot remove unset fields."
   val invalidRemoveFieldOnAMillMessage =
-    s"$pieceNotRemovedMessage You cannot remove pieces on a mill."
+    s"${pieceNotRemovedMessage}You cannot remove pieces on a mill."
   val invalidFlyingFieldAlreadyInUseMessage =
-    s"$pieceNotMovedMessage Please use a valid field that is not already in use."
+    s"${pieceNotMovedMessage}Please use a valid field that is not already in use."
   // TUI
   val wrongCommandMessage = "Your command is wrong. Please check it again. "
   val wrongSettingOrRemovingCommandMessage =

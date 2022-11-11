@@ -51,6 +51,7 @@ final case class Ring(
       })
   val middleSection = fields
     .filter(field => field.y > 0 && field.y < (size - 1))
+    .sortBy(_.x)
   val middleLeftField = new Field(middleSection(0), onAction)
   val middleRightField = new Field(middleSection(1), onAction)
   GridPane.setConstraints(middleLeftField, 0, 1)

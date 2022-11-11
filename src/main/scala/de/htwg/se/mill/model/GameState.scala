@@ -104,11 +104,12 @@ case class SettingState(override val game: Game) extends GameState(game) {
       game: Game,
       fields: (Field, Option[Field])
   ): GameState =
-    if (game.isMill(fields(0))) RemovingState(game)
+    if (game.isMill(fields(0)))
+      RemovingState(game.copy(setStones = game.setStones + 1))
     else if (
       game.copy(setStones = game.setStones + 1).everyPlayerHasSetItsStones
     ) MovingState(game)
-    else copy(game)
+    else copy(game.copy(setStones = game.setStones + 1))
 
   override def execute(fields: (Field, Option[Field])): Try[GameState] = {
     if (!game.isValidSet(fields(0)))
