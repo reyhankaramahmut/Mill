@@ -34,4 +34,3 @@ jacocoExcludes := Seq(
   "de.htwg.se.mill.util*",
   "de.htwg.se.mill.aview.gui*"
 )
-//fork := true

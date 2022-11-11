@@ -23,6 +23,8 @@ import de.htwg.se.mill.aview.gui.MessageBox
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.text.Font
+import scalafx.scene.control.TextInputDialog
+import de.htwg.se.mill.util.Messages
 
 class GUI(val controller: Controller) extends JFXApp3 with Observer {
   controller.add(this)
@@ -60,7 +62,40 @@ class GUI(val controller: Controller) extends JFXApp3 with Observer {
       title = "Mill"
       scene = new Scene(800, 600) {
         resizable = false
-        root = Board(controller, onAction)
+        root = {
+          if (controller.gameState.isEmpty) {
+            val firstPlayerName = new TextInputDialog() {
+              initOwner(stage)
+              title = "Add first Player"
+              headerText = Messages.introductionText
+              contentText = "Please enter the name of the first player:"
+            }.showAndWait()
+
+            firstPlayerName match {
+              case Some(name) => controller.addFirstPlayer(name)
+              case None => {
+                println("Add first Player Dialog was canceled.")
+                start()
+              }
+            }
+            val secondPlayerName = new TextInputDialog() {
+              initOwner(stage)
+              title = "Add second Player"
+              headerText = Messages.addSecondPlayerText
+              contentText = "Please enter the name of the second player:"
+            }.showAndWait()
+
+            secondPlayerName match {
+              case Some(name) => controller.addSecondPlayer(name)
+              case None => {
+                println("Add second Player Dialog was canceled.")
+                start()
+              }
+            }
+            controller.newGame
+          }
+          Board(controller, onAction)
+        }
       }
     }
   }

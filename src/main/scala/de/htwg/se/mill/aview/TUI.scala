@@ -11,20 +11,10 @@ class TUI(controller: Controller) extends Observer {
   controller.add(this)
   var quit = false
   def start = {
-    println("""
-Welcome to Mill a strategy board game.
-To set or remove a piece please use a command like 123
-where 1 stands for the first column, 2 stands for the second row
-and 3 stands for the third ring.
-To move a piece please use a command like 111 112 where the first
-part of the command 111 indicates the piece field before moving
-and the part of the command 112 indicates the piece field after moving.
-You can exit the game by pressing q key or start a new game by pressing n key.
-
-Before starting please enter the name of the first player.""")
+    println(Messages.introductionText)
     controller.addFirstPlayer(readLine)
     println(
-      "Now please enter the name of the second player to play."
+      Messages.addSecondPlayerText
     )
     controller.addSecondPlayer(readLine)
     controller.newGame

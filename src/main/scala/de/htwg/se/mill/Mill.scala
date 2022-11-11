@@ -17,7 +17,7 @@ object Mill {
     val controller = Controller(board)
 
     val tui = TUI(controller)
-    tui.start
+    // tui.start
 
     val gui = GUI(controller)
     val guiThread = new Thread(() => {
