@@ -5,13 +5,14 @@ import de.htwg.se.mill.util.Observer
 import de.htwg.se.mill.controller.Controller
 import de.htwg.se.mill.util.Messages
 import de.htwg.se.mill.util.Event
+import scalafx.application.Platform
 
 class TUI(controller: Controller) extends Observer {
   controller.add(this)
   var quit = false
-  def run = {
+  def start = {
     println("""
-Welcome to Muehle a strategy board game.
+Welcome to Mill a strategy board game.
 To set or remove a piece please use a command like 123
 where 1 stands for the first column, 2 stands for the second row
 and 3 stands for the third ring.
@@ -27,7 +28,6 @@ Before starting please enter the name of the first player.""")
     )
     controller.addSecondPlayer(readLine)
     controller.newGame
-    inputLoop
   }
   override def update(message: Option[String], e: Event) = {
     e match {
@@ -35,16 +35,17 @@ Before starting please enter the name of the first player.""")
       case Event.PLAY =>
         println(
           if (message.isDefined) message.get
-          else controller.gameState.get.game.board
+          else
+            s"${controller.gameState.get.game.currentPlayer}'s turn(${controller.currentGameState}): "
+              + controller.gameState.get.game.board
         )
     }
   }
-  private def inputLoop: Unit = {
-    val input = readLine(
-      s"${controller.gameState.get.game.currentPlayer}'s turn(${controller.currentGameState}): "
-    )
+  def run: Unit = {
+    val input = readLine()
+    Platform.runLater(onInput(input))
     if (quit) return
-    inputLoop
+    run
   }
 
   def onInput(
@@ -84,6 +85,7 @@ Before starting please enter the name of the first player.""")
             .matches(s"$commandPattern $commandPattern")
         ) {
           update(Some(Messages.wrongMovingOrFlyingCommandMessage), Event.PLAY)
+
           return
         }
 
@@ -105,6 +107,7 @@ Before starting please enter the name of the first player.""")
           )
           if (to.isEmpty) {
             update(Some(Messages.wrongTargetFieldPositionMessage), Event.PLAY)
+
             return
           }
           if (controller.movePiece(field.get, to.get).isDefined) return

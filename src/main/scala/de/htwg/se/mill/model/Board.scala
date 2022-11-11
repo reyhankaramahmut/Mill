@@ -8,6 +8,9 @@ trait Board {
   def size: Int
   def fieldsDump: String
   def getField(x: Int, y: Int, ring: Int): Option[Field]
+  def upperSection: Map[Int, List[Field]]
+  def middleSection: (List[Field], List[Field])
+  def lowerSection: Map[Int, List[Field]]
 }
 
 object Board {
@@ -32,6 +35,23 @@ object Board {
         b.size.equals(size) && b.fields.equals(fields)
       case _ => false
     }
+
+    override def lowerSection: Map[Int, List[Field]] = ListMap(
+      fields
+        .filter(field => field.y == (size - 1))
+        .groupBy(_.ring)
+        .toSeq
+        .sortWith(_._1 > _._1): _*
+    )
+    override def middleSection: (List[Field], List[Field]) = {
+      val section = fields
+        .filter(field => field.y > 0 && field.y < (size - 1))
+      section.splitAt(section.length / 2)
+    }
+    override def upperSection: Map[Int, List[Field]] = fields
+      .filter(field => field.y == 0)
+      .groupBy(_.ring)
+
     override def toString(): String = {
       def bar(width: Int = barWidth) = "―" * width
       def line(height: Int = lineHeight) = "│" * height
@@ -43,37 +63,23 @@ object Board {
         (line() + space()) * fieldsByRing(0) + fieldsByRing(1)
           .mkString(bar((((size - 1) - fieldsByRing(0)) + 1) * barWidth))
           + (space() + line()) * fieldsByRing(0)
-      val middleSection =
-        fields
-          .filter(field => field.y > 0 && field.y < (size - 1))
-      val middleSections = middleSection.splitAt(middleSection.length / 2)
-
-      val upperSection = fields
-        .filter(field => field.y == 0)
-        .groupBy(_.ring)
-        .map(formattedFieldsByRing)
-        .mkString(endOfLine)
-        + endOfLine
-      val lowerSection = ListMap(
-        fields
-          .filter(field => field.y == (size - 1))
-          .groupBy(_.ring)
-          .toSeq
-          .sortWith(_._1 > _._1): _*
-      )
-        .map(formattedFieldsByRing)
-        .mkString(endOfLine)
 
       endOfLine
         + upperSection
+          .map(formattedFieldsByRing)
+          .mkString(endOfLine)
+        + endOfLine
         + dividerRow
-        + middleSections(0).mkString(
+        + middleSection(0).mkString(
           bar(barWidth / 2)
-        ) + space() * size + middleSections(1).mkString(
+        ) + space() * size
+        + middleSection(1).mkString(
           bar(barWidth / 2)
         ) + endOfLine
         + dividerRow
         + lowerSection
+          .map(formattedFieldsByRing)
+          .mkString(endOfLine)
     }
     override def fieldsDump = fields
       .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
@@ -104,5 +110,4 @@ object Board {
   def apply(fields: List[Field], size: Int): Board = {
     NewBoard(fields, size)
   }
-
 }

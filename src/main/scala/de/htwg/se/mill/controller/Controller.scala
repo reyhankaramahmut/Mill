@@ -24,6 +24,7 @@ class Controller(private val board: Board) extends Observable {
   private var previousTurn: Option[Try[GameState]] = None
   var undoCommand = new UndoCommand()
   var gameState: Option[GameState] = None
+  var fromField: Option[Field] = None
 
   def addFirstPlayer(playerName: String, playerColor: String = "🔴") = {
     twoPlayers(0) = Player(playerName, playerColor)
@@ -44,10 +45,7 @@ class Controller(private val board: Board) extends Observable {
       )
     )
     previousTurn = Some(Success(gameState.get))
-    Platform.runLater {
-      notifyObservers(None, Event.PLAY)
-    }
-
+    notifyObservers(None, Event.PLAY)
   }
 
   def quit = notifyObservers(None, Event.QUIT)
@@ -80,16 +78,12 @@ class Controller(private val board: Board) extends Observable {
               controller.gameState = Some(state)
             }
           }
-          Platform.runLater {
-            controller.notifyObservers(None, Event.PLAY)
-          }
+          controller.notifyObservers(None, Event.PLAY)
 
           return None
         }
         case Failure(error) => {
-          Platform.runLater {
-            controller.notifyObservers(Some(error.getMessage()), Event.PLAY)
-          }
+          controller.notifyObservers(Some(error.getMessage()), Event.PLAY)
 
           return Some(error)
         }
@@ -211,28 +205,22 @@ class Controller(private val board: Board) extends Observable {
         }
 
         if (winStrategy(currentGame.get)) {
-          Platform.runLater {
-            notifyObservers(
-              Some(
-                s"Congratulations! ${currentGame.get.currentPlayer} has won the game!\nStarting new game."
-              ),
-              Event.PLAY
-            )
-          }
+          notifyObservers(
+            Some(
+              s"Congratulations! ${currentGame.get.currentPlayer} has won the game!\nStarting new game."
+            ),
+            Event.PLAY
+          )
 
           newGame
         } else {
-          Platform.runLater {
-            notifyObservers(None, Event.PLAY)
-          }
+          notifyObservers(None, Event.PLAY)
 
         }
         return None
       }
       case Failure(error) => {
-        Platform.runLater {
-          notifyObservers(Some(error.getMessage()), Event.PLAY)
-        }
+        notifyObservers(Some(error.getMessage()), Event.PLAY)
 
         return Some(error)
       }
