@@ -1,3 +1,4 @@
+import de.htwg.se.mill.model.SettingState
 import de.htwg.se.mill.model.Player
 import de.htwg.se.mill.model.Board
 import scala.collection.immutable.ListMap
@@ -45,3 +46,7 @@ val Melanie = Player("Melanie", "🔴")
 val Reyhan = Player("Reyhan", "🔵")
 val bigBoard = Board.withSize(5).get
 bigBoard.fieldsDump
+
+this.getClass.getSimpleName()
+classOf[SettingState].getName()
+Class.forName(classOf[SettingState].getName())

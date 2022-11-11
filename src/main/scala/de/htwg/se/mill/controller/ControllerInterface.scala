@@ -12,6 +12,8 @@ trait ControllerInterface extends Observable {
   def newGame: Unit
   def undo: Option[Throwable]
   def redo: Option[Throwable]
+  def save: Unit
+  def load: Unit
   def quit: Unit
   def setPiece(to: FieldInterface): Option[Throwable]
   def movePiece(from: FieldInterface, to: FieldInterface): Option[Throwable]

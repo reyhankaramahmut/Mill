@@ -2,6 +2,9 @@ package de.htwg.se.mill.model
 
 import scala.util.{Try, Success, Failure}
 import de.htwg.se.mill.model.PlayerInterface
+import play.api.libs.json.JsValue
+import scala.xml.Node
+import play.api.libs.json.Json
 /*
   1             2             3
 1 ⚫――――――――――――⚫――――――――――――⚫
@@ -66,4 +69,36 @@ case class Game(
   def copyBoard(board: BoardInterface): GameInterface = copy(board = board)
   def copyCurrentPlayer(currentPlayer: PlayerInterface): GameInterface =
     copy(currentPlayer = currentPlayer)
+  override def toJson: JsValue = Json.obj(
+    "board" -> Json.toJson(board.toJson),
+    "players" -> Json.toJson(players.map(_.toJson)),
+    "currentPlayer" -> Json.toJson(currentPlayer.toJson),
+    "setStones" -> Json.toJson(setStones)
+  )
+  override def toXml: Node =
+    <game>
+      {board.toXml}
+      {players.map(_.toXml)}
+      <currentPlayer>{currentPlayer.toXml}</currentPlayer>
+      <setStones>{setStones.toString}</setStones>
+    </game>
+}
+
+object Game {
+  def fromXml(node: Node): Game = Game(
+    board = Board.fromXml((node \\ "board").head),
+    players = (node \\ "player").map(n => Player.fromXml(n)).toArray,
+    currentPlayer = Player.fromXml((node \\ "currentPlayer").head),
+    setStones = (node \\ "setStones").text.trim.toInt
+  )
+  def fromJson(json: JsValue): Game = Game(
+    board = Board.fromJson((json \ "board").get),
+    players = (json \ "players")
+      .validate[Array[JsValue]]
+      .get
+      .map(j => Player.fromJson(j))
+      .toArray,
+    currentPlayer = Player.fromJson((json \ "currentPlayer").get),
+    setStones = (json \ "setStones").as[Int]
+  )
 }

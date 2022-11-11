@@ -1,5 +1,8 @@
 package de.htwg.se.mill.model
 
+import scala.xml.Node
+import play.api.libs.json.JsValue
+
 trait FieldInterface {
   val x: Int
   val y: Int
@@ -9,4 +12,6 @@ trait FieldInterface {
   override def toString: String
   override def equals(field: Any): Boolean
   def copyColor(color: String): FieldInterface
+  def toXml: Node
+  def toJson: JsValue
 }

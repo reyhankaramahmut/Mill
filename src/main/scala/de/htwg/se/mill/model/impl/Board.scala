@@ -2,6 +2,9 @@ package de.htwg.se.mill.model
 import scala.util.{Try, Success, Failure}
 import java.lang.IllegalArgumentException
 import scala.collection.immutable.ListMap
+import scala.xml.Node
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 
 object Board {
   case class NewBoard(val fields: List[FieldInterface], val size: Int)
@@ -81,6 +84,16 @@ object Board {
     override def fieldsDump = fields
       .map(field => s"(${field.x}, ${field.y}, ${field.ring})")
       .mkString(",")
+
+    override def toXml: Node =
+      <board>
+        {fields.map(_.toXml)}
+        <size>{size.toString}</size>
+      </board>
+    override def toJson: JsValue = Json.obj(
+      "fields" -> Json.toJson(fields.map(_.toJson)),
+      "size" -> Json.toJson(size)
+    )
   }
   def withSize(size: Int = 3): Try[BoardInterface] = {
     // check if board size is valid
@@ -107,4 +120,15 @@ object Board {
   def apply(fields: List[FieldInterface], size: Int): BoardInterface = {
     NewBoard(fields, size)
   }
+  def fromXml(node: Node): BoardInterface = NewBoard(
+    fields = (node \\ "field").map(n => Field.fromXml(n)).toList,
+    size = (node \\ "size").text.trim.toInt
+  )
+  def fromJson(json: JsValue): BoardInterface = NewBoard(
+    fields = (json \ "fields")
+      .validate[List[JsValue]]
+      .get
+      .map(j => Field.fromJson(j)),
+    size = (json \ "size").as[Int]
+  )
 }
