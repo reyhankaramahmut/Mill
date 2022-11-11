@@ -19,7 +19,9 @@ scalacOptions ++= Seq(
 libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % "3.2.13",
   "org.scalatest" %% "scalatest" % "3.2.13" % "test",
-  "org.scalafx" %% "scalafx" % scalafxVersion
+  "org.scalafx" %% "scalafx" % scalafxVersion,
+  "com.google.inject.extensions" % "guice-assistedinject" % "5.1.0",
+  ("net.codingwell" %% "scala-guice" % "5.0.2").cross(CrossVersion.for3Use2_13)
 )
 
 jacocoReportSettings := JacocoReportSettings(
