@@ -49,10 +49,7 @@ class Controller(private val board: Board) extends Observable {
     notifyObservers(None)
   }
 
-  private def createSnapshot: Snapshot = {
-    val snapshot = new Snapshot(this, previousTurn)
-    return snapshot
-  }
+  private def createSnapshot: Snapshot = new Snapshot(this, previousTurn)
 
   // Memento
   private class Snapshot(
@@ -98,20 +95,18 @@ class Controller(private val board: Board) extends Observable {
       undoStack match {
         case Nil => None
         case head :: stack => {
-          val result = head.restore
+          redoStack = createSnapshot :: redoStack
           undoStack = stack
-          redoStack = head :: redoStack
-          result
+          head.restore
         }
       }
     def redoStep: Option[Throwable] =
       redoStack match {
         case Nil => None
         case head :: stack => {
-          val result = head.restore
+          undoStack = createSnapshot :: undoStack
           redoStack = stack
-          undoStack = head :: undoStack
-          result
+          head.restore
         }
       }
   }
