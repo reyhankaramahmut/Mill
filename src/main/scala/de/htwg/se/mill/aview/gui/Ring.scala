@@ -1,6 +1,6 @@
 package de.htwg.se.mill.aview.gui
 
-import de.htwg.se.mill.model.Field as FieldModel
+import de.htwg.se.mill.model.FieldInterface
 import scalafx.scene.layout.GridPane
 import scalafx.geometry.Insets
 import scalafx.scene.layout.ColumnConstraints
@@ -15,9 +15,9 @@ import scalafx.scene.layout.BorderWidths
 import scalafx.geometry.VPos
 
 final case class Ring(
-    fields: List[FieldModel],
+    fields: List[FieldInterface],
     size: Int,
-    onAction: (field: FieldModel) => Unit,
+    onAction: (field: FieldInterface) => Unit,
     level: Int = 0
 ) extends GridPane {
   border = new Border(

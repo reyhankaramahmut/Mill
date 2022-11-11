@@ -1,7 +1,6 @@
 package de.htwg.se.mill.aview
 
 import de.htwg.se.mill.util.Observer
-import de.htwg.se.mill.controller.Controller
 import de.htwg.se.mill.util.Event
 import scalafx.application.JFXApp3
 import scalafx.scene.Scene
@@ -17,7 +16,7 @@ import scalafx.scene.layout.BackgroundRepeat
 import scalafx.scene.layout.BackgroundPosition
 import scalafx.geometry.Side
 import scalafx.scene.layout.BackgroundSize
-import de.htwg.se.mill.model.Field
+import de.htwg.se.mill.model.FieldInterface
 import de.htwg.se.mill.aview.gui.Board
 import de.htwg.se.mill.aview.gui.MessageBox
 import scalafx.scene.control.Alert
@@ -25,11 +24,12 @@ import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.text.Font
 import scalafx.scene.control.TextInputDialog
 import de.htwg.se.mill.util.Messages
+import de.htwg.se.mill.controller.ControllerInterface
 
-class GUI(val controller: Controller) extends JFXApp3 with Observer {
+class GUI(val controller: ControllerInterface) extends JFXApp3 with Observer {
   controller.add(this)
 
-  def onAction: (field: Field) => Unit = (field: Field) => {
+  def onAction: (field: FieldInterface) => Unit = (field: FieldInterface) => {
     if (controller.isSetting) {
       controller.setPiece(field)
     } else if (controller.isRemoving) {

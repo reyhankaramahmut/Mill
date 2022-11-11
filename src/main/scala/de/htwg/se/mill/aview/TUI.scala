@@ -2,12 +2,12 @@ package de.htwg.se.mill.aview
 
 import scala.io.StdIn.readLine
 import de.htwg.se.mill.util.Observer
-import de.htwg.se.mill.controller.Controller
 import de.htwg.se.mill.util.Messages
 import de.htwg.se.mill.util.Event
 import scalafx.application.Platform
+import de.htwg.se.mill.controller.ControllerInterface
 
-class TUI(controller: Controller) extends Observer {
+class TUI(val controller: ControllerInterface) extends Observer {
   controller.add(this)
   var quit = false
   def start = {
@@ -50,9 +50,9 @@ class TUI(controller: Controller) extends Observer {
       // start a new game
       case "n" => controller.newGame
       // undo a turn
-      case "u" => controller.undoCommand.undoStep
+      case "u" => controller.undo
       // redo a turn
-      case "r" => controller.undoCommand.redoStep
+      case "r" => controller.redo
       /*
         play the game
         input notation: (columnrowring) e.g. 111 121 or 111

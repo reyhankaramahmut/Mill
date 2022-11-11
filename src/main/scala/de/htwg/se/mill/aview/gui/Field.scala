@@ -1,14 +1,14 @@
 package de.htwg.se.mill.aview.gui
 
-import de.htwg.se.mill.model.Field as FieldModel
+import de.htwg.se.mill.model.FieldInterface
 import scalafx.scene.control.Button
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Circle
 import scalafx.beans.property.ObjectProperty
 
 final case class Field(
-    fieldModel: FieldModel,
-    on: (field: FieldModel) => Unit
+    fieldModel: FieldInterface,
+    on: (field: FieldInterface) => Unit
 ) extends Button {
   minWidth = 50
   maxWidth = 50

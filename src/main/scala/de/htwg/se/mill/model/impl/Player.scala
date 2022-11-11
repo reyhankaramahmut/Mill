@@ -1,9 +1,11 @@
 package de.htwg.se.mill.model
 
-case class Player(name: String, color: String) {
+import de.htwg.se.mill.model.PlayerInterface
+
+case class Player(val name: String, val color: String) extends PlayerInterface {
   override def toString: String = s"$name $color"
   override def equals(player: Any): Boolean = player match {
-    case p: Player =>
+    case p: PlayerInterface =>
       p.color.equals(color) && p.name.equals(name)
     case _ => false
   }

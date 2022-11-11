@@ -3,10 +3,8 @@ package de.htwg.se.mill.controller
 import scalafx.application.Platform
 import de.htwg.se.mill.model.Game
 import de.htwg.se.mill.model.Board
-import de.htwg.se.mill.model.Field
 import de.htwg.se.mill.model.Player
 import scala.util.{Try, Success, Failure}
-import de.htwg.se.mill.util.Observable
 import de.htwg.se.mill.model.WinStrategy
 import de.htwg.se.mill.model.GameState
 import de.htwg.se.mill.model.GameEvent
@@ -17,14 +15,19 @@ import de.htwg.se.mill.model.{
   FlyingState
 }
 import de.htwg.se.mill.util.Event
+import de.htwg.se.mill.model.FieldInterface
+import de.htwg.se.mill.model.BoardInterface
+import de.htwg.se.mill.model.PlayerInterface
+import de.htwg.se.mill.model.GameInterface
 
-class Controller(private val board: Board) extends Observable {
-  private val twoPlayers = new Array[Player](2)
+class Controller(private val board: BoardInterface)
+    extends ControllerInterface {
+  private val twoPlayers = new Array[PlayerInterface](2)
   private val winStrategy = WinStrategy.classicStrategy
   private var previousTurn: Option[Try[GameState]] = None
-  var undoCommand = new UndoCommand()
+  private var undoCommand = new UndoCommand()
   var gameState: Option[GameState] = None
-  var fromField: Option[Field] = None
+  var fromField: Option[FieldInterface] = None
 
   def addFirstPlayer(playerName: String, playerColor: String = "🔴") = {
     twoPlayers(0) = Player(playerName, playerColor)
@@ -56,7 +59,7 @@ class Controller(private val board: Board) extends Observable {
   }
 
   // Memento
-  class Snapshot(
+  private class Snapshot(
       val controller: Controller,
       val previousTurn: Option[Try[GameState]]
   ) {
@@ -65,16 +68,16 @@ class Controller(private val board: Board) extends Observable {
       previousTurn.get match {
         case Success(state: GameState) => {
           state match {
-            case RemovingState(game: Game) => {
+            case RemovingState(game: GameInterface) => {
               controller.gameState = Some(state)
             }
-            case SettingState(game: Game) => {
+            case SettingState(game: GameInterface) => {
               controller.gameState = Some(state)
             }
-            case FlyingState(game: Game) => {
+            case FlyingState(game: GameInterface) => {
               controller.gameState = Some(state)
             }
-            case MovingState(game: Game) => {
+            case MovingState(game: GameInterface) => {
               controller.gameState = Some(state)
             }
           }
@@ -91,7 +94,7 @@ class Controller(private val board: Board) extends Observable {
   }
 
   // Command
-  class UndoCommand {
+  private class UndoCommand {
     private var undoStack: List[Snapshot] = Nil
     private var redoStack: List[Snapshot] = Nil
     def backup(snapshot: Snapshot): Unit = {
@@ -119,7 +122,10 @@ class Controller(private val board: Board) extends Observable {
       }
   }
 
-  def setPiece(to: Field): Option[Throwable] = {
+  def undo: Option[Throwable] = undoCommand.undoStep
+  def redo: Option[Throwable] = undoCommand.redoStep
+
+  def setPiece(to: FieldInterface): Option[Throwable] = {
     undoCommand.backup(createSnapshot)
     doTurn(
       gameState.get.handle(
@@ -129,7 +135,7 @@ class Controller(private val board: Board) extends Observable {
     )
   }
 
-  def movePiece(from: Field, to: Field): Option[Throwable] = {
+  def movePiece(from: FieldInterface, to: FieldInterface): Option[Throwable] = {
     undoCommand.backup(createSnapshot)
     doTurn(
       gameState.get.handle(
@@ -139,7 +145,7 @@ class Controller(private val board: Board) extends Observable {
     )
   }
 
-  def removePiece(field: Field): Option[Throwable] = {
+  def removePiece(field: FieldInterface): Option[Throwable] = {
     undoCommand.backup(createSnapshot)
     doTurn(
       gameState.get.handle(
@@ -149,10 +155,10 @@ class Controller(private val board: Board) extends Observable {
     )
   }
   def currentGameState = gameState.get match {
-    case FlyingState(game: Game)   => "Flying Pieces"
-    case MovingState(game: Game)   => "Moving Pieces"
-    case SettingState(game: Game)  => "Setting Pieces"
-    case RemovingState(game: Game) => "Removing Pieces"
+    case FlyingState(game: GameInterface)   => "Flying Pieces"
+    case MovingState(game: GameInterface)   => "Moving Pieces"
+    case SettingState(game: GameInterface)  => "Setting Pieces"
+    case RemovingState(game: GameInterface) => "Removing Pieces"
   }
 
   def isSetting = gameState.get.isInstanceOf[SettingState]
@@ -166,36 +172,36 @@ class Controller(private val board: Board) extends Observable {
     previousTurn = Some(turn)
     turn match {
       case Success(state: GameState) => {
-        var currentGame: Option[Game] = None
+        var currentGame: Option[GameInterface] = None
         state match {
-          case RemovingState(game: Game) => {
+          case RemovingState(game: GameInterface) => {
             gameState = Some(state)
             currentGame = Some(game)
           }
-          case SettingState(game: Game) => {
+          case SettingState(game: GameInterface) => {
             gameState = Some(
               SettingState(
-                game.copy(currentPlayer =
+                game.copyCurrentPlayer(currentPlayer =
                   twoPlayers.find(p => !p.equals(game.currentPlayer)).get
                 )
               )
             )
             currentGame = Some(game)
           }
-          case FlyingState(game: Game) => {
+          case FlyingState(game: GameInterface) => {
             gameState = Some(
               FlyingState(
-                game.copy(currentPlayer =
+                game.copyCurrentPlayer(currentPlayer =
                   twoPlayers.find(p => !p.equals(game.currentPlayer)).get
                 )
               )
             )
             currentGame = Some(game)
           }
-          case MovingState(game: Game) => {
+          case MovingState(game: GameInterface) => {
             gameState = Some(
               MovingState(
-                game.copy(currentPlayer =
+                game.copyCurrentPlayer(currentPlayer =
                   twoPlayers.find(p => !p.equals(game.currentPlayer)).get
                 )
               )

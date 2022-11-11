@@ -8,18 +8,18 @@ import scalafx.scene.layout.BackgroundRepeat
 import scalafx.scene.layout.BackgroundSize
 import scalafx.geometry.Side
 import scalafx.scene.layout.BackgroundPosition
-import de.htwg.se.mill.model.Field as FieldModel
-import de.htwg.se.mill.controller.Controller
+import de.htwg.se.mill.model.FieldInterface
 import scalafx.geometry.Insets
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.paint.Color
 import scalafx.scene.control.Label
 import scalafx.scene.control.ContentDisplay
 import scalafx.geometry.Pos
+import de.htwg.se.mill.controller.ControllerInterface
 
 final case class Board(
-    val controller: Controller,
-    val onAction: (field: FieldModel) => Unit
+    val controller: ControllerInterface,
+    val onAction: (field: FieldInterface) => Unit
 ) extends StackPane {
   background = new Background(
     Array(

@@ -7,12 +7,13 @@ import de.htwg.se.mill.controller.Controller
 import de.htwg.se.mill.aview.GUI
 import scala.io.StdIn.readLine
 import scalafx.application.Platform
+import de.htwg.se.mill.model.BoardInterface
 
 object Mill {
   def main(args: Array[String]): Unit = {
     val board = Board.withSize() match {
-      case Success(board: Board) => board
-      case Failure(exception)    => throw exception
+      case Success(board: BoardInterface) => board
+      case Failure(exception)             => throw exception
     }
     val controller = Controller(board)
 
