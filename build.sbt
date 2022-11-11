@@ -5,10 +5,10 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := scala3Version
 
-Compile / mainClass := Some("de.htwg.se.muehle.Muehle")
-mainClass in (Compile, packageBin) := Some("de.htwg.se.muehle.Muehle")
+Compile / mainClass := Some("de.htwg.se.mill.Mill")
+mainClass in (Compile, packageBin) := Some("de.htwg.se.mill.Mill")
 
-name := "Muehle"
+name := "Mill"
 scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
@@ -30,8 +30,8 @@ jacocoReportSettings := JacocoReportSettings(
   "utf-8"
 )
 jacocoExcludes := Seq(
-  "de.htwg.se.muehle.Muehle*",
-  "de.htwg.se.muehle.util*",
-  "de.htwg.se.muehle.aview.gui*"
+  "de.htwg.se.mill.Mill*",
+  "de.htwg.se.mill.util*",
+  "de.htwg.se.mill.aview.gui*"
 )
 //fork := true
