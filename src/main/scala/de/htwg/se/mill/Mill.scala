@@ -8,15 +8,14 @@ import de.htwg.se.mill.aview.GUI
 import scala.io.StdIn.readLine
 import scalafx.application.Platform
 import de.htwg.se.mill.model.BoardInterface
+import com.google.inject.Injector
+import com.google.inject.Guice
+import de.htwg.se.mill.controller.ControllerInterface
 
 object Mill {
   def main(args: Array[String]): Unit = {
-    val board = Board.withSize() match {
-      case Success(board: BoardInterface) => board
-      case Failure(exception)             => throw exception
-    }
-    val controller = Controller(board)
-
+    val injector: Injector = Guice.createInjector(new MillModule)
+    val controller = injector.getInstance(classOf[ControllerInterface])
     val tui = TUI(controller)
     // tui.start
 

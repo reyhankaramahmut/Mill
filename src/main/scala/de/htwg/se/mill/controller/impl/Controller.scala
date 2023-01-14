@@ -19,8 +19,9 @@ import de.htwg.se.mill.model.FieldInterface
 import de.htwg.se.mill.model.BoardInterface
 import de.htwg.se.mill.model.PlayerInterface
 import de.htwg.se.mill.model.GameInterface
+import com.google.inject.Inject
 
-class Controller(private val board: BoardInterface)
+class Controller @Inject() (private val board: BoardInterface)
     extends ControllerInterface {
   private val twoPlayers = new Array[PlayerInterface](2)
   private val winStrategy = WinStrategy.classicStrategy
