@@ -1,4 +1,5 @@
 val scala3Version = "3.1.3"
+val scalafxVersion = "18.0.1-R28"
 
 lazy val root = project
   .in(file("."))

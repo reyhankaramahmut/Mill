@@ -1,6 +1,7 @@
 package de.htwg.se.mill.model
 
 import scala.util.{Try, Success, Failure}
+import de.htwg.se.mill.model.PlayerInterface
 /*
   1             2             3
 1 ⚫――――――――――――⚫――――――――――――⚫
@@ -14,17 +15,17 @@ import scala.util.{Try, Success, Failure}
 3 ⚫――――――――――――⚫――――――――――――⚫
  */
 case class Game(
-    board: Board,
-    players: Array[Player],
-    currentPlayer: Player,
-    setStones: Int = 0
-) {
+    val board: BoardInterface,
+    val players: Array[PlayerInterface],
+    val currentPlayer: PlayerInterface,
+    val setStones: Int = 0
+) extends GameInterface {
   override def equals(game: Any): Boolean = game match {
-    case g: Game =>
+    case g: GameInterface =>
       g.board.equals(board) && g.players.sameElements(players)
     case _ => false
   }
-  def isValidSet(field: Field): Boolean =
+  def isValidSet(field: FieldInterface): Boolean =
     field.x < board.size && field.x >= 0 && field.y < board.size
       && field.y >= 0 && field.ring < board.size && field.ring >= 0
       && board.fields
@@ -32,11 +33,12 @@ case class Game(
         .map(f => f.color == field.unsetFieldColor)
         .getOrElse(false)
 
-  def isValidMove(from: Field, to: Field): Boolean = isValidSet(to) &&
-    (Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
-      ^ Math.abs(from.ring - to.ring) == 1)
+  def isValidMove(from: FieldInterface, to: FieldInterface): Boolean =
+    isValidSet(to) &&
+      (Math.abs(from.x - to.x) == 1 ^ Math.abs(from.y - to.y) == 1
+        ^ Math.abs(from.ring - to.ring) == 1)
 
-  def isMill(to: Field): Boolean = {
+  def isMill(to: FieldInterface): Boolean = {
     val possibleMillOnRow = board.fields
       .count(field =>
         field.y == to.y && field.ring == to.ring && field.color == currentPlayer.color
@@ -60,4 +62,8 @@ case class Game(
   }
   def everyPlayerHasSetItsStones =
     setStones == Math.pow(board.size, 2).toInt * players.length
+  def copyStones(setStones: Int): GameInterface = copy(setStones = setStones)
+  def copyBoard(board: BoardInterface): GameInterface = copy(board = board)
+  def copyCurrentPlayer(currentPlayer: PlayerInterface): GameInterface =
+    copy(currentPlayer = currentPlayer)
 }

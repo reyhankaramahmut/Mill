@@ -2,59 +2,53 @@ package de.htwg.se.mill.aview
 
 import scala.io.StdIn.readLine
 import de.htwg.se.mill.util.Observer
-import de.htwg.se.mill.controller.Controller
 import de.htwg.se.mill.util.Messages
+import de.htwg.se.mill.util.Event
+import scalafx.application.Platform
+import de.htwg.se.mill.controller.ControllerInterface
 
-final case class TUI(controller: Controller) extends Observer {
+class TUI(val controller: ControllerInterface) extends Observer {
   controller.add(this)
-  def run = {
-    println("""
-Welcome to Muehle a strategy board game.
-To set or remove a piece please use a command like 123
-where 1 stands for the first column, 2 stands for the second row
-and 3 stands for the third ring.
-To move a piece please use a command like 111 112 where the first
-part of the command 111 indicates the piece field before moving
-and the part of the command 112 indicates the piece field after moving.
-You can exit the game by pressing q key or start a new game by pressing n key.
-
-Before starting please enter the name of the first player.""")
+  var quit = false
+  def start = {
+    println(Messages.introductionText)
     controller.addFirstPlayer(readLine)
     println(
-      "Now please enter the name of the second player to play."
+      Messages.addSecondPlayerText
     )
     controller.addSecondPlayer(readLine)
     controller.newGame
-    inputLoop
   }
-  override def update(message: Option[String]) = {
-    println(
-      if (message.isDefined) message.get
-      else controller.gameState.get.game.board
-    )
+  override def update(message: Option[String], e: Event) = {
+    e match {
+      case Event.QUIT => quit = true
+      case Event.PLAY =>
+        println(
+          if (message.isDefined) message.get
+          else
+            s"${controller.gameState.get.game.currentPlayer}'s turn(${controller.currentGameState}): "
+              + controller.gameState.get.game.board
+        )
+    }
   }
-  private def inputLoop: Unit = {
-    val input = readLine(
-      s"${controller.gameState.get.game.currentPlayer}'s turn(${controller.currentGameState}): "
-    )
-    if (onInput(input)) return
-    inputLoop
+  def run: Unit = {
+    val input = readLine()
+    Platform.runLater(onInput(input))
+    if (quit) return
+    run
   }
 
   def onInput(
       input: String
-  ): Boolean = {
+  ): Unit = {
     val currentGameState = controller.gameState.get
     val currentBoard = currentGameState.game.board
 
     input match {
       // quit the game
-      case "q" => true
+      case "q" => controller.quit
       // start a new game
-      case "n" => {
-        controller.newGame
-        return false
-      }
+      case "n" => controller.newGame
       // undo a turn
       case "u" => {
         controller.undo
@@ -76,15 +70,19 @@ Before starting please enter the name of the first player.""")
           (controller.isSetting || controller.isRemoving) && !input
             .matches(commandPattern)
         ) {
-          update(Some(Messages.wrongSettingOrRemovingCommandMessage))
-          return false
+          update(
+            Some(Messages.wrongSettingOrRemovingCommandMessage),
+            Event.PLAY
+          )
+          return
         }
         if (
           (controller.isMovingOrFlying) && !input
             .matches(s"$commandPattern $commandPattern")
         ) {
-          update(Some(Messages.wrongMovingOrFlyingCommandMessage))
-          return false
+          update(Some(Messages.wrongMovingOrFlyingCommandMessage), Event.PLAY)
+
+          return
         }
 
         val fields = input.split(" ").map(field => field.split(""))
@@ -94,8 +92,8 @@ Before starting please enter the name of the first player.""")
           fields(0)(2).toInt - 1
         )
         if (field.isEmpty) {
-          update(Some(Messages.wrongFieldPositionMessage))
-          return false
+          update(Some(Messages.wrongFieldPositionMessage), Event.PLAY)
+          return
         }
         if (fields.length > 1) {
           val to = currentBoard.getField(
@@ -104,27 +102,20 @@ Before starting please enter the name of the first player.""")
             fields(1)(2).toInt - 1
           )
           if (to.isEmpty) {
-            update(Some(Messages.wrongTargetFieldPositionMessage))
-            return false
+            update(Some(Messages.wrongTargetFieldPositionMessage), Event.PLAY)
+
+            return
           }
-          if (controller.movePiece(field.get, to.get).isDefined) {
-            return false
-          }
+          if (controller.movePiece(field.get, to.get).isDefined) return
         } else {
-          if (
-            controller.isSetting && controller.setPiece(field.get).isDefined
-          ) {
-            return false
-          }
+          if (controller.isSetting && controller.setPiece(field.get).isDefined)
+            return
           if (
             controller.isRemoving && controller
               .removePiece(field.get)
               .isDefined
-          ) {
-            return false
-          }
+          ) return
         }
-        return false
       }
     }
   }

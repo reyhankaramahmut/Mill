@@ -3,16 +3,19 @@ package de.htwg.se.mill.model
 import scala.util.{Try, Success, Failure}
 import de.htwg.se.mill.util.Messages
 
-sealed trait GameState(val game: Game) {
+sealed trait GameState(val game: GameInterface) {
   override def equals(state: Any): Boolean = state match {
     case s: GameState => s.game.equals(game)
     case _            => false
   }
-  def nextState(game: Game, fields: (Field, Option[Field])): GameState
-  def execute(fields: (Field, Option[Field])): Try[GameState]
+  def nextState(
+      game: GameInterface,
+      fields: (FieldInterface, Option[FieldInterface])
+  ): GameState
+  def execute(fields: (FieldInterface, Option[FieldInterface])): Try[GameState]
   def handle(
       e: GameEvent,
-      fields: (Field, Option[Field])
+      fields: (FieldInterface, Option[FieldInterface])
   ): Try[GameState] = {
     e match {
       case GameEvent.OnSetting =>
@@ -51,8 +54,10 @@ sealed trait GameState(val game: Game) {
   }
 }
 
-private trait Moving(game: Game) {
-  def movePiece(fields: (Field, Option[Field])): Try[Game] = {
+private trait Moving(game: GameInterface) {
+  def movePiece(
+      fields: (FieldInterface, Option[FieldInterface])
+  ): Try[GameInterface] = {
     if (fields(0).color != game.currentPlayer.color)
       return Failure(
         IllegalArgumentException(
@@ -61,16 +66,16 @@ private trait Moving(game: Game) {
       )
 
     Success(
-      game.copy(board =
+      game.copyBoard(board =
         Board(
           game.board.fields
             .updated(
               game.board.fields.indexOf(fields(0)),
-              fields(0).copy(color = fields(0).unsetFieldColor)
+              fields(0).copyColor(color = fields(0).unsetFieldColor)
             )
             .updated(
               game.board.fields.indexOf(fields(1).get),
-              fields(1).get.copy(color = game.currentPlayer.color)
+              fields(1).get.copyColor(color = game.currentPlayer.color)
             ),
           game.board.size
         )
@@ -79,16 +84,18 @@ private trait Moving(game: Game) {
   }
 }
 
-case class MovingState(override val game: Game)
+case class MovingState(override val game: GameInterface)
     extends GameState(game)
     with Moving(game) {
   override def nextState(
-      game: Game,
-      fields: (Field, Option[Field])
+      game: GameInterface,
+      fields: (FieldInterface, Option[FieldInterface])
   ): GameState =
     if (game.isMill(fields(1).get)) RemovingState(game)
     else copy(game)
-  override def execute(fields: (Field, Option[Field])): Try[GameState] = {
+  override def execute(
+      fields: (FieldInterface, Option[FieldInterface])
+  ): Try[GameState] = {
     if (!game.isValidMove(fields(0), fields(1).get))
       return Failure(
         IllegalArgumentException(
@@ -99,18 +106,22 @@ case class MovingState(override val game: Game)
     movePiece(fields).map(game => nextState(game, fields))
   }
 }
-case class SettingState(override val game: Game) extends GameState(game) {
+case class SettingState(override val game: GameInterface)
+    extends GameState(game) {
   override def nextState(
-      game: Game,
-      fields: (Field, Option[Field])
+      game: GameInterface,
+      fields: (FieldInterface, Option[FieldInterface])
   ): GameState =
-    if (game.isMill(fields(0))) RemovingState(game)
+    if (game.isMill(fields(0)))
+      RemovingState(game.copyStones(setStones = game.setStones + 1))
     else if (
-      game.copy(setStones = game.setStones + 1).everyPlayerHasSetItsStones
+      game.copyStones(setStones = game.setStones + 1).everyPlayerHasSetItsStones
     ) MovingState(game)
-    else copy(game)
+    else copy(game.copyStones(setStones = game.setStones + 1))
 
-  override def execute(fields: (Field, Option[Field])): Try[GameState] = {
+  override def execute(
+      fields: (FieldInterface, Option[FieldInterface])
+  ): Try[GameState] = {
     if (!game.isValidSet(fields(0)))
       return Failure(
         IllegalArgumentException(
@@ -119,11 +130,11 @@ case class SettingState(override val game: Game) extends GameState(game) {
       )
     Success(
       nextState(
-        game.copy(
+        game.copyBoard(
           board = Board(
             game.board.fields.updated(
               game.board.fields.indexOf(fields(0)),
-              fields(0).copy(color = game.currentPlayer.color)
+              fields(0).copyColor(color = game.currentPlayer.color)
             ),
             game.board.size
           )
@@ -134,11 +145,11 @@ case class SettingState(override val game: Game) extends GameState(game) {
   }
 }
 case class RemovingState(
-    override val game: Game
+    override val game: GameInterface
 ) extends GameState(game) {
   override def nextState(
-      game: Game,
-      fields: (Field, Option[Field])
+      game: GameInterface,
+      fields: (FieldInterface, Option[FieldInterface])
   ): GameState = {
     var nextState: GameState = SettingState(game)
     if (game.everyPlayerHasSetItsStones) {
@@ -155,7 +166,9 @@ case class RemovingState(
     }
     nextState
   }
-  override def execute(fields: (Field, Option[Field])): Try[GameState] = {
+  override def execute(
+      fields: (FieldInterface, Option[FieldInterface])
+  ): Try[GameState] = {
     if (fields(0).color == game.currentPlayer.color)
       return Failure(
         IllegalArgumentException(
@@ -179,12 +192,12 @@ case class RemovingState(
 
     Success(
       nextState(
-        game.copy(
+        game.copyBoard(
           board = Board(
             game.board.fields
               .updated(
                 game.board.fields.indexOf(fields(0)),
-                fields(0).copy(color = fields(0).unsetFieldColor)
+                fields(0).copyColor(color = fields(0).unsetFieldColor)
               ),
             game.board.size
           )
@@ -195,15 +208,17 @@ case class RemovingState(
   }
 }
 case class FlyingState(
-    override val game: Game
+    override val game: GameInterface
 ) extends GameState(game)
     with Moving(game) {
   override def nextState(
-      game: Game,
-      fields: (Field, Option[Field])
+      game: GameInterface,
+      fields: (FieldInterface, Option[FieldInterface])
   ): GameState = if (game.isMill(fields(1).get)) RemovingState(game)
   else copy(game)
-  override def execute(fields: (Field, Option[Field])): Try[GameState] = {
+  override def execute(
+      fields: (FieldInterface, Option[FieldInterface])
+  ): Try[GameState] = {
     if (!game.isValidSet(fields(1).get))
       return Failure(
         IllegalArgumentException(

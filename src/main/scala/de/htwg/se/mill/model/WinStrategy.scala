@@ -6,14 +6,14 @@ object WinStrategy {
   var strategy =
     if (Random.nextInt() % 2 == 0) classicStrategy
     else firstMillStrategy
-  def classicStrategy(game: Game) =
+  def classicStrategy(game: GameInterface) =
     game.everyPlayerHasSetItsStones && game.board.fields.count(field =>
       field.color == game.players
         .find(p => !p.equals(game.currentPlayer))
         .get
         .color
     ) < game.board.size
-  def firstMillStrategy(game: Game) = 0
+  def firstMillStrategy(game: GameInterface) = 0
     .until(game.board.size)
     .flatMap(j =>
       0.until(game.board.size)
