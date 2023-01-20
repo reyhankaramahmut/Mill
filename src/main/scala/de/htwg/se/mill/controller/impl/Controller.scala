@@ -20,6 +20,10 @@ import de.htwg.se.mill.model.BoardInterface
 import de.htwg.se.mill.model.PlayerInterface
 import de.htwg.se.mill.model.GameInterface
 import com.google.inject.Inject
+import com.google.inject.Guice
+import de.htwg.se.mill.MillModule
+import de.htwg.se.mill.model.FileIOInterface
+import de.htwg.se.mill.util.Messages
 
 class Controller @Inject() (private val board: BoardInterface)
     extends ControllerInterface {
@@ -171,6 +175,38 @@ class Controller @Inject() (private val board: BoardInterface)
   def isMovingOrFlying =
     gameState.get.isInstanceOf[MovingState] || gameState.get
       .isInstanceOf[FlyingState]
+
+  def save: Unit = {
+    try {
+      Guice
+        .createInjector(new MillModule)
+        .getInstance(classOf[FileIOInterface])
+        .save(previousTurn.get.get)
+      notifyObservers(
+        None,
+        Event.PLAY
+      )
+    } catch {
+      case e: Exception =>
+        notifyObservers(Some(Messages.gameStateCouldNotBeSaved), Event.PLAY)
+    }
+  }
+
+  def load: Unit = {
+    try {
+      doTurn(
+        Success(
+          Guice
+            .createInjector(new MillModule)
+            .getInstance(classOf[FileIOInterface])
+            .load
+        )
+      )
+    } catch {
+      case e: Exception =>
+        notifyObservers(Some(Messages.gameStateCouldNotBeLoaded), Event.PLAY)
+    }
+  }
 
   private def doTurn(turn: Try[GameState]): Option[Throwable] = {
     previousTurn = Some(turn)

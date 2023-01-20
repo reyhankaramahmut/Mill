@@ -40,6 +40,10 @@ Before starting please enter the name of the first player."""
     s"${pieceNotRemovedMessage}You cannot remove pieces on a mill."
   val invalidFlyingFieldAlreadyInUseMessage =
     s"${pieceNotMovedMessage}Please use a valid field that is not already in use."
+  val gameStateCouldNotBeSaved =
+    "The game state could not be saved. Try again later."
+  val gameStateCouldNotBeLoaded =
+    "The game state could not be loaded. Try again later."
   // TUI
   val wrongCommandMessage = "Your command is wrong. Please check it again. "
   val wrongSettingOrRemovingCommandMessage =

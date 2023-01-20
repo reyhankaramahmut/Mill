@@ -1,5 +1,8 @@
 package de.htwg.se.mill.model
 
+import play.api.libs.json.JsValue
+import scala.xml.Node
+
 trait GameInterface {
   val board: BoardInterface
   val players: Array[PlayerInterface]
@@ -13,4 +16,6 @@ trait GameInterface {
   def copyStones(setStones: Int): GameInterface
   def copyBoard(board: BoardInterface): GameInterface
   def copyCurrentPlayer(currentPlayer: PlayerInterface): GameInterface
+  def toJson: JsValue
+  def toXml: Node
 }

@@ -2,6 +2,26 @@ package de.htwg.se.mill.model
 
 import scala.util.{Try, Success, Failure}
 import de.htwg.se.mill.util.Messages
+import play.api.libs.json.JsValue
+import scala.xml.Node
+import play.api.libs.json.Json
+
+object GameState {
+  def fromJson(json: JsValue): GameState = (json \ "type").as[String] match {
+    case "SettingState"  => SettingState(Game.fromJson((json \ "game").get))
+    case "MovingState"   => MovingState(Game.fromJson((json \ "game").get))
+    case "FlyingState"   => FlyingState(Game.fromJson((json \ "game").get))
+    case "RemovingState" => RemovingState(Game.fromJson((json \ "game").get))
+  }
+  def fromXml(node: Node): GameState =
+    (node \\ "type").text.trim match {
+      case "SettingState" => SettingState(Game.fromXml((node \\ "game").head))
+      case "MovingState"  => MovingState(Game.fromXml((node \\ "game").head))
+      case "FlyingState"  => FlyingState(Game.fromXml((node \\ "game").head))
+      case "RemovingState" =>
+        RemovingState(Game.fromXml((node \\ "game").head))
+    }
+}
 
 sealed trait GameState(val game: GameInterface) {
   override def equals(state: Any): Boolean = state match {
@@ -52,6 +72,15 @@ sealed trait GameState(val game: GameInterface) {
     }
     execute(fields)
   }
+  def toJson: JsValue = Json.obj(
+    "type" -> this.getClass.getSimpleName,
+    "game" -> Json.toJson(game.toJson)
+  )
+  def toXml: Node =
+    <GameState>
+      <type>{this.getClass.getSimpleName}</type>
+      {game.toXml}
+   </GameState>
 }
 
 private trait Moving(game: GameInterface) {
