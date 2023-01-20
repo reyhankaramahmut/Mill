@@ -34,6 +34,9 @@ class Controller @Inject() (private val board: BoardInterface)
   var gameState: Option[GameState] = None
   var fromField: Option[FieldInterface] = None
 
+  def undo = undoCommand.undoStep
+  def redo = undoCommand.redoStep
+
   def addFirstPlayer(playerName: String, playerColor: String = "🔴") = {
     twoPlayers(0) = Player(playerName, playerColor)
   }

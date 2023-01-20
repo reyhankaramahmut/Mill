@@ -50,13 +50,18 @@ class TUI(val controller: ControllerInterface) extends Observer {
       // start a new game
       case "n" => controller.newGame
       // undo a turn
-      case "u" => controller.undo
+      case "u" => {
+        controller.undo
+        return false
+      }
       // redo a turn
+
       case "r" => controller.redo
       // save the current game state
       case "s" => controller.save
       // load the most recent game state
       case "l" => controller.load
+
       /*
         play the game
         input notation: (columnrowring) e.g. 111 121 or 111

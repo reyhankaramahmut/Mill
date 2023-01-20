@@ -1,6 +1,7 @@
 val scala3Version = "3.1.3"
 val scalafxVersion = "18.0.1-R28"
 
+
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := scala3Version
@@ -39,3 +40,5 @@ jacocoExcludes := Seq(
   "de.htwg.se.mill.util*",
   "de.htwg.se.mill.aview.gui*"
 )
+
+
